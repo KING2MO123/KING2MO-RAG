@@ -1,0 +1,18 @@
+=========================================
+GUIDE DE L'EMPLOYÉ - ACMECORP
+=========================================
+
+SECTION 1 : SÉCURITÉ ET ACCÈS AUX LOCAUX
+Les badges d'accès sont strictement personnels. En cas de perte, vous devez le signaler immédiatement au service de sécurité (sécurité@acmecorp.com) sous 2 heures. Les visiteurs externes doivent être enregistrés à l'accueil et porter un badge visiteur rouge visible. Les accès aux zones sensibles (salle serveur) nécessitent une autorisation écrite de votre responsable de département.
+
+SECTION 2 : REMBOURSEMENT DES FRAIS DE VOYAGE
+Les repas d'affaires sont remboursés jusqu'à un maximum de 45$ par personne pour le déjeuner, et 75$ pour le dîner. Pour les déplacements professionnels, les trajets en train en classe économique sont obligatoires pour tout trajet de moins de 3 heures. Les trajets en avion doivent être réservés au moins 14 jours à l'avance via l'application interne AcmeTravel. Les billets en classe affaires ne sont autorisés que pour les vols de plus de 8 heures.
+
+SECTION 3 : DÉPANNAGE MATÉRIEL ET ASSISTANCE IT
+Pour toute demande d'assistance informatique (mot de passe perdu, écran en panne, accès réseau), vous devez ouvrir un ticket sur le portail HelpDesk (http://it.acmecorp.lan) ou appeler le poste interne 4040. Le délai moyen de résolution d'un incident de priorité moyenne est de 4 heures ouvrées. Ne confiez jamais votre ordinateur portable de travail à un technicien externe non agréé par AcmeCorp IT.
+
+SECTION 4 : TÉLÉTRAVAIL ET HORAIRES
+Le télétravail est autorisé jusqu'à 2 jours par semaine pour tous les postes administratifs et d'ingénierie, après validation par votre manager. Les jours fixes de présence obligatoire au bureau sont le mardi et le jeudi pour toutes les équipes. Les horaires de travail standard recommandés sont de 9h00 à 18h00, avec une plage de présence obligatoire obligatoire entre 10h00 et 16h00.
+
+SECTION 5 : CHARTE DES RÉSEAUX SOCIAUX
+Il est strictement interdit de publier des captures d'écran du code source de nos projets, de nos bases de données clients ou de nos designs d'interface sur les réseaux sociaux personnels (LinkedIn, Twitter, Github personnel). Toute communication publique concernant les résultats financiers de AcmeCorp doit être approuvée au préalable par le département des relations publiques (pr@acmecorp.com).

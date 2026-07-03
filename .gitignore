@@ -1,0 +1,15 @@
+# Secrets / APIs keys
+.env
+
+# Vector database storage
+chroma_db/
+
+# Python Virtual Environment
+venv/
+.venv/
+__pycache__/
+*.pyc
+
+# Local system files
+.DS_Store
+Thumbs.db
