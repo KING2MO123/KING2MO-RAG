@@ -8,3 +8,5 @@ streamlit
 pydantic
 sentence-transformers
 pypdf
+fastapi
+uvicorn

@@ -38,18 +38,32 @@ st.html("""
 
 *, *::before, *::after { box-sizing: border-box; }
 
-/* ---- Base Theme ---- */
+/* ---- Base Theme & Cursor ---- */
 html, body, [class*="css"] { 
     font-family: 'Inter', sans-serif !important; 
     color: #e5e5e5 !important;
+    cursor: crosshair !important;
 }
 
 .stApp {
     background-color: var(--bg-dark) !important;
     background-image: 
-        radial-gradient(circle at 15% 0%, rgba(153, 27, 27, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 85% 100%, rgba(153, 27, 27, 0.05) 0%, transparent 40%) !important;
+        radial-gradient(circle at 15% 0%, rgba(153, 27, 27, 0.15) 0%, transparent 50%),
+        radial-gradient(circle at 85% 100%, rgba(153, 27, 27, 0.1) 0%, transparent 50%) !important;
     overflow-x: hidden;
+}
+
+/* Tactical Scanline Overlay */
+.stApp::after {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(to bottom, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%);
+    background-size: 100% 4px;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.4;
 }
 
 /* Hide default Streamlit Top Header */
@@ -150,13 +164,18 @@ section[data-testid="stSidebar"] hr {
 }
 .hero-title {
     font-family: 'Playfair Display', 'Cormorant Garamond', serif;
-    font-size: 5.5rem;
+    font-size: 6rem;
     font-weight: 700;
     line-height: 1.1;
     margin: 0;
     color: #ffffff;
     letter-spacing: -0.01em;
-    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    text-shadow: 0 0 30px rgba(220, 38, 38, 0.6), 0 0 10px rgba(255,255,255,0.2);
+    animation: text-breathe 4s ease-in-out infinite alternate;
+}
+@keyframes text-breathe {
+    0% { text-shadow: 0 0 20px rgba(220, 38, 38, 0.4), 0 0 5px rgba(255,255,255,0.1); }
+    100% { text-shadow: 0 0 40px rgba(220, 38, 38, 0.8), 0 0 15px rgba(255,255,255,0.3); }
 }
 .hero-title span {
     color: var(--blood-red);
@@ -180,47 +199,65 @@ div[data-testid="stMainBlockContainer"] div[data-testid="stTextInput"] {
     max-width: 800px;
 }
 div[data-testid="stMainBlockContainer"] .stTextInput>div>div>input {
-    background: rgba(10, 10, 10, 0.8) !important;
+    background: rgba(10, 10, 10, 0.6) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
     color: #ffffff !important;
     border-radius: 8px !important;
     font-family: 'Outfit', sans-serif !important;
-    font-size: 1.2rem !important;
+    font-size: 1.25rem !important;
     font-weight: 400 !important;
-    padding: 1.2rem 1.5rem !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
-    border-left: 3px solid var(--akatsuki-red) !important;
+    padding: 1.5rem 1.8rem !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.8) !important;
+    border-left: 4px solid var(--akatsuki-red) !important;
+    backdrop-filter: blur(10px);
 }
 div[data-testid="stMainBlockContainer"] .stTextInput>div>div>input:focus {
     border-color: var(--blood-red) !important;
-    background: #000000 !important;
-    box-shadow: 0 10px 40px rgba(220, 38, 38, 0.15) !important;
+    background: rgba(0, 0, 0, 0.9) !important;
+    transform: scale(1.03) translateY(-2px) !important;
+    box-shadow: 0 20px 50px rgba(220, 38, 38, 0.25), inset 0 0 10px rgba(220, 38, 38, 0.1) !important;
+    border-left: 6px solid var(--blood-red) !important;
 }
 div[data-testid="stMainBlockContainer"] .stTextInput>div>div>input::placeholder { 
     color: #525252 !important; 
 }
 
 /* ---- Sharp Main Button ---- */
-.run-btn-container { text-align: center; margin-top: 2rem; margin-bottom: 2rem; }
+.run-btn-container { text-align: center; margin-top: 3rem; margin-bottom: 2rem; }
 div[data-testid="stMainBlockContainer"] .stButton>button {
-    background: #0a0a0a !important;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(145deg, #0a0a0a, #111) !important;
     color: #ffffff !important;
     border: 1px solid var(--akatsuki-red) !important;
     border-radius: 8px !important;
-    padding: 0.8rem 3rem !important;
+    padding: 1rem 3.5rem !important;
     font-family: 'Outfit', sans-serif !important;
-    font-size: 1rem !important;
-    font-weight: 600 !important;
-    letter-spacing: 0.15em !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    letter-spacing: 0.2em !important;
     text-transform: uppercase !important;
-    transition: all 0.2s ease !important;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4) !important;
+    transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.05) !important;
+    z-index: 1;
+}
+div[data-testid="stMainBlockContainer"] .stButton>button::before {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(to right, transparent, rgba(220, 38, 38, 0.2), transparent);
+    transform: skewX(-25deg);
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+div[data-testid="stMainBlockContainer"] .stButton>button:hover::before {
+    left: 150%;
 }
 div[data-testid="stMainBlockContainer"] .stButton>button:hover { 
     background: var(--akatsuki-red) !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 8px 25px rgba(220, 38, 38, 0.3) !important;
+    transform: translateY(-3px) scale(1.02) !important;
+    box-shadow: 0 12px 30px rgba(220, 38, 38, 0.4) !important;
+    border-color: var(--blood-red) !important;
+    color: #fff !important;
 }
 
 /* ---- Status Loader ---- */
@@ -284,12 +321,27 @@ div[data-testid="stMainBlockContainer"] .stButton>button:hover {
     background: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
-    padding: 1.2rem;
-    transition: all 0.2s ease;
+    padding: 1.5rem;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.source-item::after {
+    content: ''; position: absolute; top: 0; left: 0; width: 2px; height: 100%;
+    background: var(--akatsuki-red);
+    transform: scaleY(0);
+    transform-origin: bottom;
+    transition: transform 0.3s ease;
+}
+.source-item:hover::after {
+    transform: scaleY(1);
 }
 .source-item:hover {
-    border-color: rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(220, 38, 38, 0.3);
+    background: rgba(220, 38, 38, 0.02);
+    transform: translateY(-6px) scale(1.01);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.5), 0 0 15px rgba(220, 38, 38, 0.1);
 }
 .source-tag {
     display: inline-block;
@@ -309,11 +361,18 @@ div[data-testid="stMainBlockContainer"] .stButton>button:hover {
 }
 .metric-widget {
     flex: 1; min-width: 120px;
-    background: transparent;
+    background: rgba(10,10,10,0.5);
     border: 1px solid rgba(255,255,255,0.05);
     border-radius: 8px;
-    padding: 1.2rem;
+    padding: 1.5rem;
     text-align: center;
+    transition: all 0.3s ease;
+}
+.metric-widget:hover {
+    border-color: var(--akatsuki-red);
+    background: rgba(220, 38, 38, 0.05);
+    transform: translateY(-4px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
 }
 .metric-val {
     font-family: 'Outfit', sans-serif;

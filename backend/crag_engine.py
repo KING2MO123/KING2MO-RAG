@@ -41,6 +41,7 @@ class GraphState(TypedDict):
     documents: List[Document]
     steps: List[Dict[str, Any]]  # trace enrichie pour l'UI
     corrections: int           # compteur anti-boucle
+    mode: str                  # "web", "local", "hybrid"
 
 
 # ---------------------------------------------------------------------------
@@ -138,6 +139,9 @@ def _step(node: str, detail: str) -> Dict[str, Any]:
 
 
 def retrieve(state: GraphState) -> Dict[str, Any]:
+    if state.get("mode") == "web":
+        return {"documents": [], "steps": list(state.get("steps", [])) + [_step("retrieve", "Recherche locale ignorée (Mode Web)")]}
+        
     question = state["question"]
     documents = get_retriever().invoke(question)
     steps = list(state.get("steps", []))
@@ -214,6 +218,8 @@ def generate(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
 # Conditional edges
 # ---------------------------------------------------------------------------
 def decide_to_generate(state: GraphState) -> Literal["web_search", "generate"]:
+    if state.get("mode") == "local":
+        return "generate"
     return "web_search" if state["web_search"] == "yes" else "generate"
 
 
@@ -299,7 +305,7 @@ def build_crag_graph(gemini_key: str, tavily_key: str, model: str = DEFAULT_MODE
     return workflow.compile()
 
 
-def initial_state(question: str) -> GraphState:
+def initial_state(question: str, mode: str = "hybrid") -> GraphState:
     return {
         "question": question,
         "generation": "",
@@ -307,4 +313,5 @@ def initial_state(question: str) -> GraphState:
         "documents": [],
         "steps": [],
         "corrections": 0,
+        "mode": mode,
     }
