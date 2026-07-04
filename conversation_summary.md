@@ -1,4 +1,4 @@
-# Synthèse Globale du Projet : KING2MO - Agentic RAG v2.0
+# Synthèse Globale du Projet : KING2MO - Agentic RAG v3.0
 
 Ce document récapitule l'ensemble des discussions, choix techniques, architectures et itérations esthétiques réalisés lors du développement de l'application **KING2MO**.
 
@@ -10,7 +10,7 @@ L'objectif était de concevoir et réaliser un assistant de recherche intelligen
 - Parcourir le Web en temps réel via des agents (Tavily).
 - Analyser des documents locaux (PDF importés, découpés et stockés vectoriellement).
 - S'auto-corriger automatiquement si les informations initialement récupérées sont jugées insuffisantes.
-- Offrir une expérience utilisateur de niveau professionnel, ultra-premium, fluide et esthétique.
+- Offrir une expérience utilisateur de niveau professionnel, ultra-premium, fluide et esthétique sous forme de chat conversationnel.
 
 ---
 
@@ -36,33 +36,40 @@ Le projet est divisé en deux entités distinctes communicant par API :
 
 ---
 
-## 3. Itérations et Améliorations de l'Interface (UX/UI)
+## 3. Le Processus de Vectorisation Locale (RAG)
 
-Le design a fait l'objet de nombreuses itérations pour transformer une interface de recherche classique en une application d'IA haut de gamme :
+Pour le traitement des documents locaux (.pdf), l'application suit un pipeline sémantique strict exécuté entièrement sur le PC de l'utilisateur :
+
+1. **Extraction (PyPDFLoader)** : Les documents importés par l'utilisateur sont analysés et textuellement extraits page par page.
+2. **Segmentation sémantique (RecursiveCharacterTextSplitter)** :
+   - Le texte est découpé en segments d'une taille de **1000 caractères**.
+   - Un chevauchement (overlap) de **200 caractères** est appliqué entre chaque segment adjacent pour conserver le contexte sémantique aux frontières des découpes.
+3. **Génération de Vecteurs (all-MiniLM-L6-v2)** :
+   - Les segments textuels sont convertis en vecteurs numériques de **384 dimensions** représentant leur contenu sémantique.
+   - Cette conversion s'effectue localement via le modèle open-source d'embeddings **HuggingFace `all-MiniLM-L6-v2`** (sans appel réseau ni frais d'API).
+4. **Base de Données Vectorielle (ChromaDB)** : Les vecteurs et métadonnées associées sont sauvegardés localement dans le dossier `backend/chroma_db` pour permettre une recherche par similarité cosinus instantanée lors des requêtes.
+
+---
+
+## 4. Itérations et Améliorations de l'Interface (UX/UI)
 
 ### 1. Habillage de l'espace vide (Lumière et Texture)
 - **Halos Ambiants (Studio Glow)** : Ajout de grands cercles de lumière diffuse (vert émeraude à gauche, rose/violet magenta à droite) animés par de légères pulsations. Ils comblent le vide sur grand écran sans surcharger l'affichage.
 - **Texture Grain** : Superposition d'un filtre "bruit de film" très discret pour casser l'aspect trop lisse et "plat" du fond sombre.
+- **Réseau Neuronal Interactif** : Un Canvas interactif de réseau neuronal en constellation dérive doucement en arrière-plan, reliant des nœuds de données par des rayons émeraude, symbolisant le traitement RAG.
 
-### 2. Le Réseau Neuronal Interactif
-- Les anciennes "bulles" flottantes ont été remplacées par un **Canvas interactif de Réseau Neuronal (Constellation)**. 
-- Des nœuds de données dérivent doucement à l'écran et tissent de fins rayons lumineux émeraude lorsqu'ils se croisent, illustrant visuellement le concept de connexion de données inhérent au RAG.
-
-### 3. Réorganisation de la Page de Résultats (Deux Colonnes)
-- **Suppression du cadre (Result Card)** : Le grand encadré noir rigide qui enfermait la réponse a été retiré. Le texte coule désormais librement sur le fond sombre (Style Claude/Notion) pour une lecture reposante.
-- **Layout 2 Colonnes** :
-  - **À gauche** : La question posée (en grand titre épuré) et la réponse textuelle formatée.
-  - **À droite (Sidebar)** : Les sources sous forme de cartes cliquables et les métriques clés (vitesse en secondes, nombre de cycles de correction, statut de l'appui web).
-- **Correction des sauts de ligne** : Nettoyage du CSS (`white-space: pre-wrap` supprimé) pour éviter les énormes espacements parasites et garantir que les listes et paragraphes s'alignent parfaitement.
-
-### 4. Ergonomie et Navigation
-- **Bouton Retour / Reset** : Intégration d'un bouton **"X" (Retour à l'accueil)** discret et circulaire situé directement à gauche de la barre de recherche lorsque les résultats sont actifs.
-- **Logo Interactif** : Le logo `KING2MO` dans la barre latérale gauche émet un événement au clic pour réinitialiser instantanément l'application à zéro.
-- **Pills de Suggestions** : Ajout de suggestions de recherches rapides et cliquables sous la barre de recherche principale pour guider l'utilisateur.
+### 2. Transition vers l'interface de Chat IA (v3.0)
+L'application est passée d'un mode de recherche à turn unique à une **interface de discussion conversationnelle fluide** :
+- **Fil de Discussion Continu** : Les questions de l'utilisateur et les réponses de l'assistant s'empilent verticalement, avec un défilement automatique vers le bas. Les espacements ont été resserrés pour garantir une lecture fluide (marge de 2.5rem entre les tours, 0.5rem au sein du même tour).
+- **Barre de Recherche Sticky Bottom** : La barre de recherche se fixe proprement au bas de l'écran dès que la discussion commence. Sa largeur est dynamique (680px centrée sur l'accueil, extensible à 100% de la zone de chat).
+- **Remplacement de la colonne latérale par un affichage Inline** :
+  - **Sources Horizontales** : Pour éviter les bugs de superposition et de hauteur avec la colonne de droite, les sources de chaque message s'affichent sous forme de **carrousel à défilement horizontal** juste sous la réponse.
+  - **Métriques et Actions au pied du message** : Les boutons copier/télécharger et les métriques de traitement (vitesse, corrections, appui web) se situent discrètement sous chaque message de manière intégrée.
+- **Ergonomie globale** : Ajout d'une croix de retour "X" à côté du champ de recherche et bouton logo interactif pour réinitialiser le chat instantanément.
 
 ---
 
-## 4. Statut et Prochaines Étapes
+## 5. Statut et Prochaines Étapes
 - Le code est propre, exempt d'erreurs de syntaxe ou de compilation.
 - Le README du projet a été intégralement mis à jour pour documenter le lancement du Backend et du Frontend.
 - Toutes les modifications ont été `commit` et `push` sur la branche principale du dépôt GitHub.
