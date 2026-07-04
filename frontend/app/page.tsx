@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Moon, Sun, Key, Link2, BookOpen, Clock, Copy, Download, Book, FileText, X, ExternalLink, Cpu, Globe, Folder, Eye, EyeOff, Paperclip, Plus } from "lucide-react";
+import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Key, Link2, BookOpen, Clock, Copy, Check, Download, Book, X, Cpu, Globe, Folder, Eye, EyeOff, Paperclip } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -95,10 +95,6 @@ export default function Home() {
   const [geminiKey, setGeminiKey] = useState("");
   const [tavilyKey, setTavilyKey] = useState("");
   const [query, setQuery] = useState("");
-  const [status, setStatus] = useState<string | null>(null);
-  const [result, setResult] = useState<string | null>(null);
-  const [sources, setSources] = useState<any[]>([]);
-  const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   
@@ -113,9 +109,17 @@ export default function Home() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [showKeys, setShowKeys] = useState(false);
-  const [showSources, setShowSources] = useState(true);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll vers le dernier message (nouvelle question ou réponse reçue)
+  useEffect(() => {
+    if (messages.length > 0) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [messages]);
 
   // Load history & keys on mount
   useEffect(() => {
@@ -143,9 +147,9 @@ export default function Home() {
   };
 
   const handleSearch = async (searchQuery: string = query) => {
-    if (!searchQuery) return;
+    const newQuery = searchQuery.trim();
+    if (!newQuery || loading) return;
 
-    const newQuery = searchQuery;
     setQuery("");
     saveToHistory(newQuery);
 
@@ -180,14 +184,17 @@ export default function Home() {
       const reader = response.body.getReader();
       const decoder = new TextDecoder("utf-8");
       let done = false;
+      let buffer = "";
 
       while (!done) {
         const { value, done: readerDone } = await reader.read();
         done = readerDone;
         if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          const lines = chunk.split("\n\n");
-          for (const line of lines) {
+          // Buffer : un événement SSE peut être coupé entre deux chunks réseau
+          buffer += decoder.decode(value, { stream: true });
+          const events = buffer.split("\n\n");
+          buffer = events.pop() || "";
+          for (const line of events) {
             if (line.startsWith("data: ")) {
               try {
                 const data = JSON.parse(line.replace("data: ", ""));
@@ -196,9 +203,9 @@ export default function Home() {
                 } else if (data.type === "result") {
                   setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
                     ...m, 
-                    content: data.generation, 
-                    sources: data.sources || [], 
-                    metrics: { corrections: data.corrections },
+                    content: data.generation,
+                    sources: data.sources || [],
+                    metrics: { corrections: data.corrections, duration: data.duration, webUsed: data.web_used },
                     loading: false, 
                     status: null 
                   } : m));
@@ -234,10 +241,11 @@ export default function Home() {
     setLoading(false);
   };
 
-  const copyToClipboard = (text: string) => {
+  const copyToClipboard = (text: string, msgId: string) => {
     if (text) {
       navigator.clipboard.writeText(text);
-      alert("Copié dans le presse-papiers !");
+      setCopiedId(msgId);
+      setTimeout(() => setCopiedId(null), 2000);
     }
   };
 
@@ -294,7 +302,7 @@ export default function Home() {
   return (
     <div className="app-container">
       {/* Authentic Matrix Glow */}
-      <div className="ambient-glow"></div>
+      <div className="aurora-bg"></div>
       <div className={`search-dim-overlay ${isSearchFocused ? 'active' : ''}`}></div>
 
       {/* SIDEBAR */}
@@ -387,8 +395,8 @@ export default function Home() {
         {/* Header bar / Title for active chat */}
         {messages.length > 0 && (
           <div className="chat-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '900px', margin: '0 auto 1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
-            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>DISCUSSON ACTIVE</span>
-            <button onClick={handleReset} title="Reprendre à zéro" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>DISCUSSION ACTIVE</span>
+            <button onClick={handleReset} className="reset-btn" title="Reprendre à zéro" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
               <X size={16} />
             </button>
           </div>
@@ -398,37 +406,33 @@ export default function Home() {
         {messages.length > 0 && (
           <div className="chat-messages-container" style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px', width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {messages.map((msg, idx) => (
-              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: (msg.role === 'user' && idx > 0) ? '2.5rem' : '0' }}>
+              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: (msg.role === 'user' && idx > 0) ? '1.25rem' : '0' }}>
                 
-                {/* User Message Rendering */}
+                {/* User Message Rendering (bulle de chat) */}
                 {msg.role === 'user' && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Outfit', sans-serif", margin: 0 }}>
-                      {msg.content}
-                    </h2>
+                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <div className="user-bubble">{msg.content}</div>
                   </div>
                 )}
 
                 {/* Assistant Message Rendering */}
                 {msg.role === 'assistant' && (
-                  <div className="assistant-message-layout" style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start' }}>
+                  <div className="assistant-message-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
                     
-                    {/* Main content of the AI response */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      
-
-                      {msg.loading ? (
-                        <div className="skeleton-container" style={{ padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
-                            <Loader2 size={16} className="animate-spin" />
-                            <span>{msg.status || "ANALYSE EN COURS..."}</span>
-                          </div>
-                          <div className="skeleton-line title" style={{ marginTop: '1.5rem' }}></div>
-                          <div className="skeleton-line full"></div>
-                          <div className="skeleton-line full"></div>
-                          <div className="skeleton-line medium"></div>
+                    {msg.loading ? (
+                      <div className="skeleton-container" style={{ padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
+                          <Loader2 size={16} className="animate-spin" />
+                          <span>{msg.status || "ANALYSE EN COURS..."}</span>
                         </div>
-                      ) : (
+                        <div className="skeleton-line title" style={{ marginTop: '0.8rem' }}></div>
+                        <div className="skeleton-line full"></div>
+                        <div className="skeleton-line full"></div>
+                        <div className="skeleton-line medium"></div>
+                      </div>
+                    ) : (
+                      <>
+                        {/* Response Text */}
                         <div className="result-body" style={{ marginTop: 0 }}>
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
@@ -440,6 +444,7 @@ export default function Home() {
                                     style={vscDarkPlus as any}
                                     language={match[1]}
                                     PreTag="div"
+                                    customStyle={{ margin: '0 0 0.9rem', borderRadius: '10px', border: '1px solid var(--glass-border)', fontSize: '0.85rem' }}
                                     {...props}
                                   >
                                     {String(children).replace(/\n$/, '')}
@@ -454,82 +459,93 @@ export default function Home() {
                           >
                             {msg.content}
                           </ReactMarkdown>
+                        </div>
 
-                          <div className="result-actions-bottom" style={{ display: 'flex', gap: '1rem', marginTop: '1.2rem', paddingTop: '0.8rem', borderTop: '1px solid var(--glass-border)', justifyContent: 'flex-start' }}>
-                            <button className="action-btn" onClick={() => copyToClipboard(msg.content)} title="Copier la réponse">
-                              <Copy size={14} /> Copier
+                        {/* Inline Horizontal Sources */}
+                        {msg.sources && msg.sources.length > 0 && (
+                          <div className="sources-inline-container" style={{ marginTop: '0.5rem' }}>
+                            <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                              <Link2 size={12} /> Sources ({msg.sources.length})
+                            </h3>
+                            <div className="sources-horizontal-scroll" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.6rem' }}>
+                              {msg.sources.map((src: any, i: number) => {
+                                const rawSource = String(src.source || src.metadata?.source || "");
+                                const url = src.url || src.metadata?.url || (rawSource.startsWith("http") ? rawSource : null);
+                                let label = "Document Local";
+                                if (rawSource && !rawSource.startsWith("http")) {
+                                  label = rawSource.split(/[\\/]/).pop() || rawSource;
+                                } else if (url) {
+                                  try { label = new URL(url).hostname.replace(/^www\./, ""); } catch { label = url; }
+                                }
+                                return (
+                                  <div key={i} className="source-card-compact" onClick={() => url && window.open(url, "_blank")} title={url || rawSource} style={{ cursor: url ? 'pointer' : 'default', flex: '0 0 240px' }}>
+                                    <div className="source-card-header">
+                                      <span className="source-card-number">{i + 1}</span>
+                                      <span className="source-card-title">
+                                        {url ? <Globe size={12}/> : <Folder size={12}/>}
+                                        {label}
+                                      </span>
+                                    </div>
+                                    <div className="source-card-snip">
+                                      {src.content || src.page_content}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Footer actions and metrics */}
+                        <div className="assistant-message-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.6rem', borderTop: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.8rem' }}>
+                            <button className="action-btn" onClick={() => copyToClipboard(msg.content, msg.id)} title="Copier la réponse">
+                              {copiedId === msg.id ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier</>}
                             </button>
                             <button className="action-btn" onClick={() => downloadMarkdown(msg.content)} title="Télécharger en Markdown">
                               <Download size={14} /> Markdown
                             </button>
                           </div>
+
+                          {msg.metrics && (
+                            <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.75rem', fontFamily: "'JetBrains Mono', monospace" }}>
+                              {typeof msg.metrics.duration === 'number' && (
+                                <span>⚡ Vitesse: {msg.metrics.duration}s</span>
+                              )}
+                              <span>🔧 Corrections: {msg.metrics.corrections || 0}</span>
+                              <span>🌐 Web: {msg.metrics.webUsed ? 'Oui' : 'Non'}</span>
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-
-                    {/* Sidebar metrics & sources (only for finished response) */}
-                    {!msg.loading && (
-                      <div className="result-sidebar" style={{ width: '280px', flexShrink: 0, position: 'static' }}>
-                        {msg.metrics && (
-                          <div className="metrics-compact">
-                            <div className="metric-badge" title="Nombre d'auto-corrections">
-                              <Cpu size={14} /> Cycles de correction: {msg.metrics.corrections || 0}
-                            </div>
-                          </div>
-                        )}
-
-                        {msg.sources && msg.sources.length > 0 && (
-                          <div className="sources-vertical-container" style={{ marginTop: msg.metrics ? '1.5rem' : 0 }}>
-                            <h3 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.8rem', fontFamily: "'Outfit', sans-serif", borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.4rem' }}>
-                              <Link2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }}/>
-                              Sources ({msg.sources.length})
-                            </h3>
-                            <div className="sources-vertical-list">
-                              {msg.sources.map((src: any, i: number) => (
-                                <div key={i} className="source-card-compact" onClick={() => src.metadata?.url && window.open(src.metadata.url, "_blank")}>
-                                  <div className="source-card-header">
-                                    <span className="source-card-number">{i + 1}</span>
-                                    <span className="source-card-title">
-                                      {src.metadata?.url ? <Globe size={12}/> : <Folder size={12}/>}
-                                      {src.metadata?.source || "Document Local"}
-                                    </span>
-                                  </div>
-                                  <div className="source-card-snip">
-                                    {src.content || src.page_content}
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
+                      </>
                     )}
                   </div>
                 )}
               </div>
             ))}
+            <div ref={messagesEndRef} />
           </div>
         )}
 
         {/* SEARCH ROW (BOTTOM STICKY FOR ACTIVE CHAT, MIDDLE FOR HOME) */}
-        <div className="search-header-row" style={{ 
-          display: 'flex', 
-          gap: '1rem', 
-          width: '100%', 
-          maxWidth: '900px', 
-          margin: '0 auto', 
-          alignItems: 'center', 
+        <div className="search-header-row" style={{
+          display: 'flex',
+          gap: '1rem',
+          width: messages.length > 0 ? (sidebarOpen ? 'min(900px, calc(100vw - 300px - 3rem))' : 'min(900px, calc(100vw - 3rem))') : '100%',
+          maxWidth: '900px',
+          margin: '0 auto',
+          alignItems: 'center',
           justifyContent: 'center',
           position: messages.length > 0 ? 'fixed' : 'relative',
           bottom: messages.length > 0 ? '2rem' : 'auto',
-          left: messages.length > 0 ? '50%' : 'auto',
+          // Centre de la zone de contenu : la sidebar fait 300px de large
+          left: messages.length > 0 ? (sidebarOpen ? 'calc(50% + 150px)' : '50%') : 'auto',
           transform: messages.length > 0 ? 'translateX(-50%)' : 'none',
           padding: messages.length > 0 ? '1rem 2rem' : '0',
           background: messages.length > 0 ? 'var(--bg-color)' : 'transparent',
           boxShadow: messages.length > 0 ? '0 -20px 40px var(--bg-color)' : 'none',
           zIndex: 100,
-          transition: 'all 0.3s ease',
-          paddingLeft: messages.length > 0 ? (sidebarOpen ? 'calc(260px + 2rem)' : 'calc(80px + 2rem)') : '0'
+          transition: 'all 0.3s ease'
         }}>
           <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, flex: 1, margin: 0, maxWidth: messages.length > 0 ? '100%' : '680px' }}>
             <div className="search-input-wrapper">
