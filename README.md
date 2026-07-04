@@ -1,72 +1,94 @@
-# Agentic CRAG (Corrective RAG) Workflow with LangGraph & Streamlit
+# KING2MO - Agentic RAG Application
 
-Ce projet implémente une application d'**Agentic Retrieval-Augmented Generation (Corrective RAG)** avancée en utilisant **LangGraph**, **LangChain**, et **Google Gemini**.
-
-L'application propose un flux de décision complet géré sous forme de graphe d'états asynchrone, avec fallback sur recherche web et correction automatique des hallucinations.
+Ce projet implémente **KING2MO**, une application web ultra-moderne d'**Agentic Retrieval-Augmented Generation (Corrective RAG)**. Elle associe une interface frontend Next.js à un moteur IA de pointe propulsé par FastAPI, LangGraph, et Google Gemini.
 
 ---
 
-## ⚙️ Architecture du Graphe de Décision (CRAG)
+## ⚙️ Architecture du Système
 
-Le workflow implémenté suit les étapes logiques suivantes :
+Le projet est divisé en deux parties distinctes :
 
-```mermaid
-graph TD
-    Start([Début]) --> Retrieve[Récupération Vectorielle locale Chroma]
-    Retrieve --> Grade[Évaluation de la pertinence par un Agent LLM]
-    Grade --> Decide{Documents valides & suffisants ?}
-    Decide -- Oui --> Generate[Génération de la réponse]
-    Decide -- Non --> WebSearch[Recherche Web Complémentaire - Tavily]
-    WebSearch --> Generate
-    Generate --> SelfCorrection{Self-Correction / Grounding Check}
-    SelfCorrection -- Hallucination ou Non utile --> Generate
-    SelfCorrection -- Réponse validée --> End([Présentation de la réponse])
-```
+### 1. Le Moteur IA (Backend - FastAPI)
+Situé dans le dossier `/backend`.
+Un graphe de décision avancé (CRAG) implémenté avec **LangGraph** :
+- **Retrieve** : Recherche sémantique dans la base de données vectorielle locale (Chroma).
+- **Grade Documents** : Évaluation LLM de la pertinence des documents extraits.
+- **Web Search Fallback** : Si les documents sont insuffisants, l'agent déclenche automatiquement une recherche web via l'API **Tavily**.
+- **Generate & Self-Correction** : Le LLM (Gemini 2.5) génère une réponse, puis s'auto-évalue (Grounding Check & Usefulness Check) pour éliminer les hallucinations.
 
-1. **Retrieve** : Recherche sémantique dans la base de données vectorielle locale Chroma (contenant des documents techniques AcmeCorp).
-2. **Grade Documents** : Un évaluateur LLM passe en revue chaque document extrait et le note comme pertinent ou non.
-3. **Decide / Search** : Si des documents sont manquants ou non pertinents, l'agent déclenche automatiquement une recherche web complémentaire via l'API **Tavily** pour combler les manques.
-4. **Generate** : Le LLM (Gemini 2.5 Flash) génère une synthèse finale à partir des données collectées.
-5. **Self-Correction** : Un double censeur (Grounded Check & Usefulness Check) analyse la réponse pour détecter les hallucinations par rapport aux faits réels. Une garde anti-boucle limite l'auto-correction à 2 cycles maximum.
+### 2. L'Interface Utilisateur (Frontend - Next.js)
+Situé dans le dossier `/frontend`.
+Une interface web ultra-premium et minimaliste :
+- **Design System** : Thème sombre par défaut (Dark Mode), composants "Glassmorphism", et typographie élégante (Inter & JetBrains Mono).
+- **Animations** : Arrière-plan génératif "Réseau Neuronal" exclusif et halos de lumière ambiante (Ambient Glow).
+- **Intégration** : Upload de PDF locaux directement depuis la barre de recherche.
+- **Feedback visuel** : Affichage des sources, boutons de copie et de téléchargement Markdown.
 
 ---
 
 ## 🛠️ Installation & Démarrage
 
 ### Prérequis
-- Python 3.10+
-- Un compte [Google AI Studio](https://aistudio.google.com/) pour obtenir une clé d'API **Gemini**.
-- Une clé d'API [Tavily](https://tavily.com/) (Optionnelle, pour le fallback de recherche web).
+- Node.js (v18+)
+- Python (3.10+)
+- Une clé d'API [Google AI Studio (Gemini)](https://aistudio.google.com/)
+- Une clé d'API [Tavily](https://tavily.com/)
 
-### 1. Cloner le projet et installer les dépendances
+### Étape 1 : Lancer le Backend (Python/FastAPI)
+
+Ouvrez un terminal et exécutez les commandes suivantes :
+
 ```bash
-# Installer les dépendances requises
+cd backend
+
+# Installer les dépendances
 pip install -r requirements.txt
-```
 
-### 2. Initialiser la base de données vectorielle locale
-Avant de lancer l'application, vous devez peupler la base de données locale Chroma avec les documents techniques d'évaluation :
-```bash
+# Initialiser la base de données vectorielle locale
 python seed_data.py
-```
 
-### 3. Lancer l'application interactive Streamlit
-```bash
-streamlit run app.py
+# Démarrer le serveur API
+uvicorn main:app --reload --port 8000
 ```
-L'interface sera disponible dans votre navigateur à l'adresse [http://localhost:8501](http://localhost:8501).
+L'API sera disponible sur `http://localhost:8000`.
+
+### Étape 2 : Lancer le Frontend (Next.js)
+
+Ouvrez un **second terminal** :
+
+```bash
+cd frontend
+
+# Installer les paquets
+npm install
+
+# Lancer le serveur de développement
+npm run dev
+```
+L'application sera accessible sur `http://localhost:3000` (ou 3001).
 
 ---
 
 ## 📂 Structure du Projet
 
-* `app.py` : Interface Streamlit **dark tech** avec trace du pipeline affichée en direct (streaming node par node).
-* `crag_engine.py` : Définition des états, des agents censeurs et de la logique de graphe LangGraph (cache des embeddings, garde anti-boucle, trace enrichie).
-* `seed_data.py` : Script d'initialisation de la base vectorielle locale avec Chroma et HuggingFace embeddings.
-* `.streamlit/config.toml` : Thème sombre forcé (évite les conflits light/dark du navigateur).
-* `requirements.txt` : Liste des dépendances.
+```text
+/
+├── backend/
+│   ├── main.py             # Point d'entrée de l'API FastAPI
+│   ├── crag_engine.py      # Logique complexe du Graphe LangGraph
+│   ├── seed_data.py        # Script d'ingestion de la base Chroma
+│   └── requirements.txt    # Dépendances Python
+│
+├── frontend/
+│   ├── app/
+│   │   ├── page.tsx        # Application React principale
+│   │   ├── layout.tsx      # Structure HTML et métadonnées
+│   │   └── globals.css     # CSS pur, thèmes et animations
+│   ├── package.json        # Dépendances NPM
+│   └── public/             # Assets statiques
+```
 
 ---
 
-## 👥 Crédits & Co-développement
-Ce projet a été développé en collaboration et en pair-programming avec l'assistant IA **Antigravity** de Google DeepMind.
+## 👥 Crédits
+Design de l'interface et architecture développés en collaboration avec l'assistant IA **Antigravity**.
