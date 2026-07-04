@@ -531,7 +531,7 @@ export default function Home() {
           transition: 'all 0.3s ease',
           paddingLeft: messages.length > 0 ? (sidebarOpen ? 'calc(260px + 2rem)' : 'calc(80px + 2rem)') : '0'
         }}>
-          <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, flex: 1, margin: 0, maxWidth: '100%' }}>
+          <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, flex: 1, margin: 0, maxWidth: messages.length > 0 ? '100%' : '680px' }}>
             <div className="search-input-wrapper">
               <input 
                 type="file" 
