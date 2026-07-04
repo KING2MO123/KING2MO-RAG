@@ -1,3 +1,13 @@
+import sys
+import os as _os
+
+# Exe compilé sans console (PyInstaller console=False) : stdout/stderr sont None,
+# ce qui fait planter uvicorn/logging (.isatty()). On les redirige vers le néant.
+if sys.stdout is None:
+    sys.stdout = open(_os.devnull, "w", encoding="utf-8")
+if sys.stderr is None:
+    sys.stderr = open(_os.devnull, "w", encoding="utf-8")
+
 from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -16,7 +26,7 @@ app = FastAPI(title="KING2MO RAG API")
 
 # CORS : uniquement les origines explicitement autorisées (M1).
 # Configurable via ALLOWED_ORIGINS (valeurs séparées par des virgules).
-_allowed = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+_allowed = os.environ.get("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:3050,http://127.0.0.1:3050")
 ALLOWED_ORIGINS = [o.strip() for o in _allowed.split(",") if o.strip()]
 
 app.add_middleware(
@@ -30,7 +40,8 @@ app.add_middleware(
 
 # Auth obligatoire : exige le BACKEND_API_TOKEN défini dans le .env
 def require_token(x_api_token: Optional[str] = Header(default=None)):
-    expected = os.environ.get("BACKEND_API_TOKEN")
+    # Pas de mot de passe par défaut codé en dur : le .env doit le définir.
+    expected = os.environ.get("BACKEND_API_TOKEN", "")
     if not expected:
         raise HTTPException(status_code=500, detail="BACKEND_API_TOKEN non configuré sur le serveur.")
     if x_api_token != expected:
@@ -50,7 +61,9 @@ async def chat(request: ChatRequest, _auth: bool = Depends(require_token)):
     graph = build_crag_graph(gemini_key, tavily_key)
     state = initial_state(request.query, request.history, request.mode, request.image_base64)
 
-    async def event_stream():
+    # Générateur SYNCHRONE : FastAPI l'exécute dans un threadpool, donc la
+    # génération LLM ne bloque plus la boucle d'événements du serveur.
+    def event_stream():
         try:
             start_time = time.time()
 
@@ -274,6 +287,211 @@ async def delete_document(filename: str, _auth: bool = Depends(require_token)):
         from fastapi import HTTPException
         raise HTTPException(status_code=500, detail=str(e))
 
+# ---------------------------------------------------------------------
+# Paramètres (fournisseur LLM + clés API), modifiables depuis l'interface.
+# Écrits dans le .env à côté de l'exe (ou de main.py en dev).
+# ---------------------------------------------------------------------
+_VALID_PROVIDERS = {"", "gemini", "deepseek", "gemini-openai"}
+
+def _env_file_path() -> str:
+    import sys as _sys
+    if getattr(_sys, "frozen", False):
+        return os.path.join(os.path.dirname(_sys.executable), ".env")
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+
+def _mask_key(value: str) -> str:
+    if not value:
+        return ""
+    return value[:4] + "…" + value[-4:] if len(value) > 8 else "•" * len(value)
+
+class SettingsUpdate(BaseModel):
+    llm_provider: Optional[str] = None
+    gemini_api_key: Optional[str] = Field(default=None, max_length=300)
+    tavily_api_key: Optional[str] = Field(default=None, max_length=300)
+
+@app.get("/api/settings")
+async def get_settings(_auth: bool = Depends(require_token)):
+    return {
+        "llm_provider": os.environ.get("LLM_PROVIDER", ""),
+        "llm_api_key_masked": _mask_key(os.environ.get("GEMINI_API_KEY", "")),
+        "tavily_api_key_masked": _mask_key(os.environ.get("TAVILY_API_KEY", "")),
+    }
+
+@app.post("/api/settings")
+async def update_settings(update: SettingsUpdate, _auth: bool = Depends(require_token)):
+    provider = (update.llm_provider or "").strip().lower()
+    if provider not in _VALID_PROVIDERS:
+        return {"status": "error", "message": f"Fournisseur inconnu : {provider}"}
+
+    changes = {}
+    if provider:
+        changes["LLM_PROVIDER"] = provider
+    if update.gemini_api_key and update.gemini_api_key.strip():
+        changes["GEMINI_API_KEY"] = update.gemini_api_key.strip()
+    if update.tavily_api_key and update.tavily_api_key.strip():
+        changes["TAVILY_API_KEY"] = update.tavily_api_key.strip()
+    if not changes:
+        return {"status": "warning", "message": "Aucun changement fourni."}
+
+    # Relit le .env existant en préservant l'ordre et les clés non modifiées
+    env_path = _env_file_path()
+    values, order = {}, []
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8") as f:
+            for raw in f.read().splitlines():
+                s = raw.strip()
+                if not s or s.startswith("#") or "=" not in s:
+                    continue
+                k, v = s.split("=", 1)
+                k = k.strip()
+                if k not in values:
+                    order.append(k)
+                values[k] = v.strip()
+
+    for k, v in changes.items():
+        values[k] = f'"{v}"'
+        if k not in order:
+            order.append(k)
+        os.environ[k] = v  # effet immédiat, sans redémarrage
+
+    with open(env_path, "w", encoding="utf-8") as f:
+        for k in order:
+            f.write(f"{k}={values[k]}\n")
+
+    return {"status": "success", "message": "Paramètres enregistrés ✓"}
+
+# ---------------------------------------------------------------------
+# Serveur Static (Frontend Monolithe)
+# ---------------------------------------------------------------------
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse, HTMLResponse
+import sys
+
+# Résolution du chemin absolu du dossier "out" du frontend
+base_dir = os.path.dirname(os.path.abspath(__file__))
+frontend_build_path = os.path.join(base_dir, "..", "frontend", "out")
+
+# Si on est dans un exécutable PyInstaller (_MEIPASS), le dossier est différent
+if hasattr(sys, '_MEIPASS'):
+    frontend_build_path = os.path.join(sys._MEIPASS, "frontend_out")
+
+# Si le dossier de build existe (version compilée ou standalone), on le monte sur la racine
+if os.path.isdir(frontend_build_path):
+    app.mount("/_next", StaticFiles(directory=os.path.join(frontend_build_path, "_next")), name="next_assets")
+    
+    # On gère manuellement la racine et les 404 pour l'application mono-page Next.js
+    @app.get("/")
+    async def serve_index():
+        return FileResponse(os.path.join(frontend_build_path, 'index.html'))
+
+    @app.exception_handler(404)
+    async def custom_404_handler(request, exc):
+        if request.url.path.startswith("/api/"):
+            return HTMLResponse(content="API Route Not Found", status_code=404)
+        return FileResponse(os.path.join(frontend_build_path, 'index.html'))
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    import threading
+    import webbrowser
+    import socket
+    import traceback
+
+    # Fichier de log à côté de l'exe (ou du script en mode dev)
+    if getattr(sys, "frozen", False):
+        _app_dir = os.path.dirname(sys.executable)
+    else:
+        _app_dir = os.path.dirname(os.path.abspath(__file__))
+    LOG_FILE = os.path.join(_app_dir, "king2mo_error.log")
+
+    def _port_in_use(port: int) -> bool:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            return s.connect_ex(("127.0.0.1", port)) == 0
+
+    def _pick_free_port() -> int:
+        """Essaie 8000 puis des alternatives ; sinon port attribué par l'OS.
+        Sur Windows, des plages de ports peuvent être réservées (Hyper-V/WSL)
+        et le bind sur 8000 échoue silencieusement."""
+        for candidate in (8000, 8080, 8501, 3050):
+            try:
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.bind(("127.0.0.1", candidate))
+                return candidate
+            except OSError:
+                continue
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.bind(("127.0.0.1", 0))
+            return s.getsockname()[1]
+
+    PORT = _pick_free_port()
+    URL = f"http://127.0.0.1:{PORT}"
+
+    def _find_edge():
+        import subprocess  # noqa: F401
+        candidates = [
+            os.path.expandvars(r"%ProgramFiles(x86)%\Microsoft\Edge\Application\msedge.exe"),
+            os.path.expandvars(r"%ProgramFiles%\Microsoft\Edge\Application\msedge.exe"),
+            os.path.expandvars(r"%LocalAppData%\Microsoft\Edge\Application\msedge.exe"),
+        ]
+        for p in candidates:
+            if os.path.exists(p):
+                return p
+        return None
+
+    def _open_app_window(block: bool):
+        """Ouvre l'interface dans une fenêtre application (Edge --app).
+        Si block=True, la fermeture de la fenêtre arrête l'application."""
+        import subprocess
+        import tempfile
+        edge = _find_edge()
+        if edge:
+            # Profil persistant (pas dans %TEMP%) : conserve l'historique et
+            # les réglages du navigateur intégré entre les sessions.
+            profile = os.path.join(
+                os.environ.get("LOCALAPPDATA", tempfile.gettempdir()),
+                "KING2MO", "window_profile",
+            )
+            os.makedirs(profile, exist_ok=True)
+            proc = subprocess.Popen([edge, f"--app={URL}", f"--user-data-dir={profile}"])
+            if block:
+                proc.wait()
+                os._exit(0)  # fenêtre fermée -> on quitte le serveur
+        else:
+            webbrowser.open(URL)  # secours si Edge introuvable
+
+    def _wait_server_then_open_window():
+        for _ in range(240):  # jusqu'à 2 min (1er lancement plus lent)
+            if _port_in_use(PORT):
+                break
+            time.sleep(0.5)
+        _open_app_window(block=True)
+
+    PORT_FILE = os.path.join(_app_dir, "king2mo.port")
+
+    try:
+        # Une instance tourne-t-elle déjà ? (port mémorisé au dernier lancement)
+        try:
+            with open(PORT_FILE, "r", encoding="utf-8") as f:
+                previous_port = int(f.read().strip())
+            if _port_in_use(previous_port):
+                URL = f"http://127.0.0.1:{previous_port}"
+                _open_app_window(block=False)
+                sys.exit(0)
+        except (OSError, ValueError):
+            pass
+
+        with open(PORT_FILE, "w", encoding="utf-8") as f:
+            f.write(str(PORT))
+
+        threading.Thread(target=_wait_server_then_open_window, daemon=True).start()
+
+        # 127.0.0.1 : évite l'alerte du pare-feu Windows (0.0.0.0 la déclenche).
+        # log_config=None : évite le formatter uvicorn incompatible sans console.
+        uvicorn.run(app, host="127.0.0.1", port=PORT, log_config=None)
+    except BaseException as e:
+        # Capture aussi SystemExit(1) émis par uvicorn quand le démarrage échoue.
+        if isinstance(e, SystemExit) and e.code in (0, None):
+            raise
+        with open(LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(traceback.format_exc() + "\n")
+        raise

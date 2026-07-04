@@ -8,6 +8,7 @@ Avec garde anti-boucle infinie sur la phase d'auto-correction.
 """
 
 import os
+import sys
 import json
 import urllib.request
 from functools import lru_cache
@@ -29,7 +30,12 @@ from langgraph.graph import StateGraph, END
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
 DEFAULT_MODEL = "gemini-1.5-flash"
 MAX_CORRECTIONS = 2  # nombre max de cycles d'auto-correction avant acceptation
-CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
+# En mode exe (PyInstaller), la base doit vivre à côté de l'exe (persistante),
+# pas dans le dossier temporaire d'extraction (_MEIPASS) qui disparaît.
+if getattr(sys, "frozen", False):
+    CHROMA_DB_DIR = os.path.join(os.path.dirname(sys.executable), "chroma_db")
+else:
+    CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
 
 
 # ---------------------------------------------------------------------------
@@ -74,6 +80,26 @@ class GradeAnswer(BaseModel):
 # ---------------------------------------------------------------------------
 def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
     key = api_key or GEMINI_API_KEY
+    # Fournisseur explicite via LLM_PROVIDER (gemini | deepseek | gemini-openai).
+    # Évite le routage fragile par préfixe de clé.
+    provider = os.environ.get("LLM_PROVIDER", "").strip().lower()
+    if provider == "gemini":
+        return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
+    if provider == "deepseek":
+        return ChatOpenAI(
+            model="deepseek-chat",
+            api_key=key,
+            base_url="https://api.deepseek.com/v1",
+            temperature=temperature,
+        )
+    if provider == "gemini-openai":
+        return ChatOpenAI(
+            model=model,
+            api_key=key,
+            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
+            temperature=temperature,
+        )
+    # Heuristique héritée (si LLM_PROVIDER absent)
     if key.startswith("AQ."):
         return ChatOpenAI(
             model=model,
@@ -94,7 +120,11 @@ def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
 @lru_cache(maxsize=1)
 def _get_embeddings():
     # Coûteux à instancier : mis en cache pour tout le process.
-    return HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
+    # En mode exe : utilise le modèle embarqué s'il est présent (hors-ligne),
+    # sinon retombe sur le téléchargement/cache HuggingFace.
+    bundled = os.path.join(getattr(sys, "_MEIPASS", ""), "models", "all-MiniLM-L6-v2")
+    model_ref = bundled if os.path.isdir(bundled) else "all-MiniLM-L6-v2"
+    return HuggingFaceEmbeddings(model_name=model_ref)
 
 
 @lru_cache(maxsize=1)

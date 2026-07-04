@@ -14,3 +14,14 @@ __pycache__/
 # Local system files
 .DS_Store
 Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.spec
+crash.log
+
+# Frontend build artifacts
+frontend/out/
+frontend/.next/
+frontend/node_modules/

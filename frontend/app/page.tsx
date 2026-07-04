@@ -8,8 +8,8 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend, BarChart, Bar } from 'recharts';
 
-// URL du backend configurable (m5) : évite le localhost:8000 codé en dur.
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// URL du backend relative pour la version Standalone (FastAPI sert le Frontend).
+const API_BASE = "";
 
 // Nombre max d'entrées conservées dans l'historique des coûts (m2).
 const MAX_COST_HISTORY = 100;
@@ -110,6 +110,14 @@ export default function Home() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState("hybrid");
 
+  // Settings (clés API / fournisseur LLM)
+  const [showSettings, setShowSettings] = useState(false);
+  const [llmProvider, setLlmProvider] = useState("deepseek");
+  const [llmKey, setLlmKey] = useState("");
+  const [tavilyKey, setTavilyKey] = useState("");
+  const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
+  const [savingSettings, setSavingSettings] = useState(false);
+
   // Upload States
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
@@ -188,6 +196,44 @@ export default function Home() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const openSettings = async () => {
+    setShowSettings(true);
+    setLlmKey(""); setTavilyKey("");
+    try {
+      const res = await fetch(`${API_BASE}/api/settings`, { headers: { "X-API-Token": systemPassword } });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.llm_provider) setLlmProvider(data.llm_provider);
+        setSettingsMsg(data.llm_api_key_masked ? `Clé LLM actuelle : ${data.llm_api_key_masked}` : "Aucune clé LLM configurée.");
+      } else {
+        setSettingsMsg("⚠️ Entre d'abord le mot de passe du serveur.");
+      }
+    } catch {
+      setSettingsMsg("⚠️ Serveur injoignable.");
+    }
+  };
+
+  const saveSettings = async () => {
+    setSavingSettings(true);
+    try {
+      const res = await fetch(`${API_BASE}/api/settings`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-API-Token": systemPassword },
+        body: JSON.stringify({
+          llm_provider: llmProvider,
+          gemini_api_key: llmKey || null,
+          tavily_api_key: tavilyKey || null,
+        }),
+      });
+      const data = await res.json();
+      setSettingsMsg(data.message || (res.ok ? "Enregistré ✓" : "Erreur."));
+      if (res.ok && data.status === "success") { setLlmKey(""); setTavilyKey(""); }
+    } catch {
+      setSettingsMsg("⚠️ Serveur injoignable.");
+    }
+    setSavingSettings(false);
   };
 
   const clearDocuments = async () => {
@@ -564,6 +610,12 @@ export default function Home() {
               />
             </div>
           </div>
+          <button
+            onClick={openSettings}
+            style={{ marginTop: '0.6rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.45rem', fontSize: '0.75rem', background: 'var(--glass-bg)', color: 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '6px', cursor: 'pointer' }}
+          >
+            <Key size={13} /> Clés API &amp; Fournisseur
+          </button>
         </div>
 
         {history.length > 0 && (
@@ -672,6 +724,67 @@ export default function Home() {
           )}
         </div>
       </div>
+
+      {/* SETTINGS MODAL */}
+      {showSettings && (
+        <div onClick={() => setShowSettings(false)} style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '440px', background: `rgba(${bgRGB}, 0.98)`, border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Key size={18} /> Paramètres API</h2>
+              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
+            </div>
+
+            <div className="input-group" style={{ marginBottom: '1rem' }}>
+              <label>Fournisseur IA</label>
+              <select
+                className="sidebar-input"
+                value={llmProvider}
+                onChange={(e) => setLlmProvider(e.target.value)}
+                style={{ width: '100%' }}
+              >
+                <option value="gemini">Google Gemini</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </div>
+
+            <div className="input-group" style={{ marginBottom: '1rem' }}>
+              <label>Clé API du fournisseur</label>
+              <input
+                type="password"
+                className="sidebar-input"
+                placeholder="Colle ta clé ici (laisser vide = inchangée)"
+                value={llmKey}
+                onChange={(e) => setLlmKey(e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            <div className="input-group" style={{ marginBottom: '1.25rem' }}>
+              <label>Clé Tavily (recherche web, optionnelle)</label>
+              <input
+                type="password"
+                className="sidebar-input"
+                placeholder="tvly-... (laisser vide = inchangée)"
+                value={tavilyKey}
+                onChange={(e) => setTavilyKey(e.target.value)}
+                style={{ width: '100%' }}
+              />
+            </div>
+
+            {settingsMsg && (
+              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>{settingsMsg}</div>
+            )}
+
+            <button
+              onClick={saveSettings}
+              disabled={savingSettings}
+              style={{ width: '100%', padding: '0.6rem', background: 'var(--accent-color)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: savingSettings ? 'wait' : 'pointer' }}
+            >
+              {savingSettings ? 'Enregistrement...' : 'Enregistrer'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* MAIN CONTENT */}
       <div className="main-content" style={{ paddingLeft: sidebarOpen ? "2rem" : "5rem", display: 'flex', flexDirection: 'column' }}>
@@ -794,7 +907,7 @@ export default function Home() {
                           <BarChart data={data.history} margin={{ top: 10, right: 0, left: -20, bottom: 20 }} barCategoryGap="5%">
                             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
                             <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
-                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v.toString()} />
                             <Tooltip cursor={{ fill: 'var(--glass-border)', opacity: 0.2 }} contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }} />
                             <Bar dataKey="inTokens" stackId="t" name="In Tokens" fill={modelName === "DeepSeek" ? "#93c5fd" : "#6ee7b7"} radius={[0, 0, 0, 0]} />
                             <Bar dataKey="outTokens" stackId="t" name="Out Tokens" fill={modelName === "DeepSeek" ? "#3b82f6" : "#10b981"} radius={[2, 2, 0, 0]} />
