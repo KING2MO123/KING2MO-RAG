@@ -396,9 +396,9 @@ export default function Home() {
 
         {/* MESSAGES LIST (CHAT CORE) */}
         {messages.length > 0 && (
-          <div className="chat-messages-container" style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px', width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+          <div className="chat-messages-container" style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px', width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {messages.map((msg, idx) => (
-              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: (msg.role === 'user' && idx > 0) ? '2.5rem' : '0' }}>
                 
                 {/* User Message Rendering */}
                 {msg.role === 'user' && (
@@ -415,14 +415,7 @@ export default function Home() {
                     
                     {/* Main content of the AI response */}
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div className="result-actions-top" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.8rem', justifyContent: 'flex-start' }}>
-                        <button className="action-btn" onClick={() => copyToClipboard(msg.content)} title="Copier la réponse">
-                          <Copy size={14} /> Copier
-                        </button>
-                        <button className="action-btn" onClick={() => downloadMarkdown(msg.content)} title="Télécharger en Markdown">
-                          <Download size={14} /> Markdown
-                        </button>
-                      </div>
+                      
 
                       {msg.loading ? (
                         <div className="skeleton-container" style={{ padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
@@ -461,6 +454,15 @@ export default function Home() {
                           >
                             {msg.content}
                           </ReactMarkdown>
+
+                          <div className="result-actions-bottom" style={{ display: 'flex', gap: '1rem', marginTop: '1.2rem', paddingTop: '0.8rem', borderTop: '1px solid var(--glass-border)', justifyContent: 'flex-start' }}>
+                            <button className="action-btn" onClick={() => copyToClipboard(msg.content)} title="Copier la réponse">
+                              <Copy size={14} /> Copier
+                            </button>
+                            <button className="action-btn" onClick={() => downloadMarkdown(msg.content)} title="Télécharger en Markdown">
+                              <Download size={14} /> Markdown
+                            </button>
+                          </div>
                         </div>
                       )}
                     </div>
