@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Moon, Sun, Key, Link2, BookOpen, Clock, Copy, Download, Book, FileText, X, ExternalLink, Cpu, Globe, Folder, Eye, EyeOff, Paperclip } from "lucide-react";
+import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Moon, Sun, Key, Link2, BookOpen, Clock, Copy, Download, Book, FileText, X, ExternalLink, Cpu, Globe, Folder, Eye, EyeOff, Paperclip, Plus } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
@@ -115,6 +115,7 @@ export default function Home() {
   const [showKeys, setShowKeys] = useState(false);
   const [showSources, setShowSources] = useState(true);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [messages, setMessages] = useState<any[]>([]);
 
   // Load history & keys on mount
   useEffect(() => {
@@ -143,21 +144,29 @@ export default function Home() {
 
   const handleSearch = async (searchQuery: string = query) => {
     if (!searchQuery) return;
-    if (!geminiKey) {
-      alert("⚠️ Veuillez configurer votre clé API Gemini dans la barre latérale.");
-      return;
-    }
 
     const newQuery = searchQuery;
     setQuery("");
     saveToHistory(newQuery);
+
+    // 1. Add User Message
+    const userMsgId = Date.now().toString();
+    const userMsg = { id: userMsgId, role: "user", content: newQuery };
     
-    setResult(null);
-    setSources([]);
-    setMetrics(null);
+    // 2. Add Assistant Loading Message
+    const assistantMsgId = (Date.now() + 1).toString();
+    const assistantMsg = { 
+      id: assistantMsgId, 
+      role: "assistant", 
+      content: "", 
+      sources: [], 
+      metrics: null, 
+      loading: true, 
+      status: "Initialisation..." 
+    };
+
+    setMessages(prev => [...prev, userMsg, assistantMsg]);
     setLoading(true);
-    setStatus("Initialisation...");
-    setShowSources(true);
 
     try {
       const response = await fetch("http://localhost:8000/api/chat", {
@@ -183,15 +192,24 @@ export default function Home() {
               try {
                 const data = JSON.parse(line.replace("data: ", ""));
                 if (data.type === "status") {
-                  setStatus(`TRAITEMENT : ${data.node.toUpperCase()}`);
+                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, status: `TRAITEMENT : ${data.node.toUpperCase()}` } : m));
                 } else if (data.type === "result") {
-                  setResult(data.generation);
-                  setSources(data.sources);
-                  setMetrics({ corrections: data.corrections });
-                  setStatus(null);
+                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
+                    ...m, 
+                    content: data.generation, 
+                    sources: data.sources || [], 
+                    metrics: { corrections: data.corrections },
+                    loading: false, 
+                    status: null 
+                  } : m));
                   setLoading(false);
                 } else if (data.type === "error") {
-                  setStatus(`ERREUR : ${data.message}`);
+                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
+                    ...m, 
+                    content: `❌ Erreur : ${data.message}`, 
+                    loading: false, 
+                    status: null 
+                  } : m));
                   setLoading(false);
                 }
               } catch (e) {}
@@ -200,9 +218,20 @@ export default function Home() {
         }
       }
     } catch (error) {
-      setStatus(`Erreur de connexion au serveur Backend.`);
+      setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
+        ...m, 
+        content: "❌ Erreur de connexion au serveur Backend.", 
+        loading: false, 
+        status: null 
+      } : m));
       setLoading(false);
     }
+  };
+
+  const handleReset = () => {
+    setMessages([]);
+    setQuery("");
+    setLoading(false);
   };
 
   const copyToClipboard = (text: string) => {
@@ -274,7 +303,7 @@ export default function Home() {
           <SidebarIcon size={20} />
         </div>
 
-        <div className="sb-brand">KING2MO</div>
+        <div className="sb-brand" onClick={handleReset} style={{ cursor: 'pointer' }}>KING2MO</div>
         
         <div>
           <div className="sb-section-title">AUTHENTIFICATION API</div>
@@ -355,197 +384,248 @@ export default function Home() {
           </div>
         )}
 
-        <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, marginTop: (!result && !loading) ? '1rem' : '0' }}>
-          <div className="search-input-wrapper">
-            <input 
-              type="file" 
-              accept=".pdf" 
-              onChange={handleFileUpload} 
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              id="file-upload"
-            />
-            <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un PDF local">
-              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={18} strokeWidth={2.5} />}
-            </label>
-            <input
-              type="text"
-              className="main-search-input"
-              placeholder="Que souhaitez-vous savoir ?"
-              value={query}
-              onFocus={() => setIsSearchFocused(true)}
-              onBlur={() => setIsSearchFocused(false)}
-              onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-            />
-            <button onClick={() => handleSearch(query)} className="search-submit-btn" disabled={loading} title="Lancer l'analyse">
-              <Search size={18} strokeWidth={2.5} />
+        {/* Header bar / Title for active chat */}
+        {messages.length > 0 && (
+          <div className="chat-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '900px', margin: '0 auto 1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>DISCUSSON ACTIVE</span>
+            <button onClick={handleReset} title="Reprendre à zéro" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+              <X size={16} />
             </button>
-          </div>
-          {uploadMessage && (
-            <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace" }}>
-              {uploadMessage}
-            </div>
-          )}
-          
-          {!loading && !result && (
-            <>
-              <div className="mode-segmented-control">
-                <button className={`mode-btn ${mode === 'hybrid' ? 'active' : ''}`} onClick={() => setMode('hybrid')}>
-                  <Sparkles size={16} />
-                  Hybride
-                </button>
-                <button className={`mode-btn ${mode === 'web' ? 'active' : ''}`} onClick={() => setMode('web')}>
-                  <Globe size={16} />
-                  Web
-                </button>
-                <button className={`mode-btn ${mode === 'local' ? 'active' : ''}`} onClick={() => setMode('local')}>
-                  <Folder size={16} />
-                  Local
-                </button>
-              </div>
-              
-              <div className="welcome-grid">
-                <div className="welcome-card" onClick={() => handleSearch("Explique le concept d'Agentic RAG")}>
-                  <Cpu size={24} />
-                  <div className="welcome-card-title">Agentic RAG</div>
-                  <div className="welcome-card-subtitle">Comprendre l'architecture et ses avantages</div>
-                </div>
-                <div className="welcome-card" onClick={() => handleSearch("Quelles sont les dernières actus IA ?")}>
-                  <Globe size={24} />
-                  <div className="welcome-card-title">Actualités IA</div>
-                  <div className="welcome-card-subtitle">Les dernières avancées du secteur</div>
-                </div>
-                <div className="welcome-card" onClick={() => handleSearch("Résume les informations clés du manuel")}>
-                  <BookOpen size={24} />
-                  <div className="welcome-card-title">Résumé Local</div>
-                  <div className="welcome-card-subtitle">Synthèse de votre base documentaire</div>
-                </div>
-              </div>
-              
-              <div className="suggestions-container" style={{ marginTop: '4rem', textAlign: 'center' }}>
-                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
-                  Recherches suggérées
-                </p>
-                <div className="suggestions-flex" style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '800px', margin: '0 auto' }}>
-                  <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")}>
-                    <Sparkles size={14} /> Comment optimiser un système RAG ?
-                  </button>
-                  <button className="suggestion-pill" onClick={() => handleSearch("Tendances de l'IA générative en 2026")}>
-                    <Globe size={14} /> Tendances de l'IA générative en 2026
-                  </button>
-                  <button className="suggestion-pill" onClick={() => handleSearch("Exemple de Prompt Engineering avancé")}>
-                    <Book size={14} /> Exemple de Prompt Engineering avancé
-                  </button>
-                  <button className="suggestion-pill" onClick={() => handleSearch("Sécurité et confidentialité des LLMs")}>
-                    <Key size={14} /> Sécurité et confidentialité des LLMs
-                  </button>
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        {!result && !loading && (
-          <div className="app-footer" style={{ position: 'absolute', bottom: '2rem', left: '0', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
-            Propulsé par Agentic RAG • v2.0
           </div>
         )}
 
-        {(result || loading) && (
-          <div className="result-area" style={{ padding: '2rem 0' }}>
-            {result && (
-              <div className="result-card">
-                <div className="result-actions">
-                  {sources.length > 0 && (
-                    <button className={`action-btn ${showSources ? 'active' : ''}`} onClick={() => setShowSources(!showSources)} title="Afficher/Cacher les sources">
-                      {showSources ? <EyeOff size={14}/> : <Eye size={14}/>} Sources
-                    </button>
-                  )}
-                  <button className="action-btn" onClick={() => copyToClipboard(result)} title="Copier la réponse">
-                    <Copy size={14} /> Copier
-                  </button>
-                  <button className="action-btn" onClick={() => downloadMarkdown(result)} title="Télécharger en Markdown">
-                    <Download size={14} /> Markdown
-                  </button>
-                </div>
-
-                {metrics && (
-                  <div className="metrics-row">
-                    <div className="metric-badge">
-                      <Cpu size={14} /> Cycles de correction: {metrics.corrections || 0}
-                    </div>
-                  </div>
-                )}
+        {/* MESSAGES LIST (CHAT CORE) */}
+        {messages.length > 0 && (
+          <div className="chat-messages-container" style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px', width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
+            {messages.map((msg, idx) => (
+              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
                 
-                <div className="result-body">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    components={{
-                      code({node, inline, className, children, ...props}: any) {
-                        const match = /language-(\w+)/.exec(className || '')
-                        return !inline && match ? (
-                          <SyntaxHighlighter
-                            style={vscDarkPlus as any}
-                            language={match[1]}
-                            PreTag="div"
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, '')}
-                          </SyntaxHighlighter>
-                        ) : (
-                          <code className={className} {...props}>
-                            {children}
-                          </code>
-                        )
-                      }
-                    }}
-                  >
-                    {result}
-                  </ReactMarkdown>
-                </div>
+                {/* User Message Rendering */}
+                {msg.role === 'user' && (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <h2 style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', fontFamily: "'Outfit', sans-serif", margin: 0 }}>
+                      {msg.content}
+                    </h2>
+                  </div>
+                )}
 
-                {showSources && sources.length > 0 && (
-                  <div className="sources-horizontal-container">
-                    <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', fontFamily: "'Outfit', sans-serif" }}>
-                      <Link2 size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }}/>
-                      Sources utilisées
-                    </h3>
-                    <div className="sources-horizontal-scroll">
-                      {sources.map((src, i) => (
-                        <div key={i} className="source-card-compact" onClick={() => src.metadata?.url && window.open(src.metadata.url, "_blank")}>
-                          <div className="source-card-header">
-                            <span className="source-card-number">{i + 1}</span>
-                            <span className="source-card-title">
-                              {src.metadata?.url ? <Globe size={12}/> : <Folder size={12}/>}
-                              {src.metadata?.source || "Document Local"}
-                            </span>
-                            {src.metadata?.url && <ExternalLink size={12} style={{ opacity: 0.5 }}/>}
+                {/* Assistant Message Rendering */}
+                {msg.role === 'assistant' && (
+                  <div className="assistant-message-layout" style={{ display: 'flex', gap: '2.5rem', alignItems: 'flex-start' }}>
+                    
+                    {/* Main content of the AI response */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div className="result-actions-top" style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.8rem', justifyContent: 'flex-start' }}>
+                        <button className="action-btn" onClick={() => copyToClipboard(msg.content)} title="Copier la réponse">
+                          <Copy size={14} /> Copier
+                        </button>
+                        <button className="action-btn" onClick={() => downloadMarkdown(msg.content)} title="Télécharger en Markdown">
+                          <Download size={14} /> Markdown
+                        </button>
+                      </div>
+
+                      {msg.loading ? (
+                        <div className="skeleton-container" style={{ padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
+                            <Loader2 size={16} className="animate-spin" />
+                            <span>{msg.status || "ANALYSE EN COURS..."}</span>
                           </div>
-                          <div className="source-card-snip">
-                            {src.page_content}
-                          </div>
+                          <div className="skeleton-line title" style={{ marginTop: '1.5rem' }}></div>
+                          <div className="skeleton-line full"></div>
+                          <div className="skeleton-line full"></div>
+                          <div className="skeleton-line medium"></div>
                         </div>
-                      ))}
+                      ) : (
+                        <div className="result-body" style={{ marginTop: 0 }}>
+                          <ReactMarkdown 
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                              code({node, inline, className, children, ...props}: any) {
+                                const match = /language-(\w+)/.exec(className || '')
+                                return !inline && match ? (
+                                  <SyntaxHighlighter
+                                    style={vscDarkPlus as any}
+                                    language={match[1]}
+                                    PreTag="div"
+                                    {...props}
+                                  >
+                                    {String(children).replace(/\n$/, '')}
+                                  </SyntaxHighlighter>
+                                ) : (
+                                  <code className={className} {...props}>
+                                    {children}
+                                  </code>
+                                )
+                              }
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      )}
                     </div>
+
+                    {/* Sidebar metrics & sources (only for finished response) */}
+                    {!msg.loading && (
+                      <div className="result-sidebar" style={{ width: '280px', flexShrink: 0, position: 'static' }}>
+                        {msg.metrics && (
+                          <div className="metrics-compact">
+                            <div className="metric-badge" title="Nombre d'auto-corrections">
+                              <Cpu size={14} /> Cycles de correction: {msg.metrics.corrections || 0}
+                            </div>
+                          </div>
+                        )}
+
+                        {msg.sources && msg.sources.length > 0 && (
+                          <div className="sources-vertical-container" style={{ marginTop: msg.metrics ? '1.5rem' : 0 }}>
+                            <h3 style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.8rem', fontFamily: "'Outfit', sans-serif", borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.4rem' }}>
+                              <Link2 size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.4rem' }}/>
+                              Sources ({msg.sources.length})
+                            </h3>
+                            <div className="sources-vertical-list">
+                              {msg.sources.map((src: any, i: number) => (
+                                <div key={i} className="source-card-compact" onClick={() => src.metadata?.url && window.open(src.metadata.url, "_blank")}>
+                                  <div className="source-card-header">
+                                    <span className="source-card-number">{i + 1}</span>
+                                    <span className="source-card-title">
+                                      {src.metadata?.url ? <Globe size={12}/> : <Folder size={12}/>}
+                                      {src.metadata?.source || "Document Local"}
+                                    </span>
+                                  </div>
+                                  <div className="source-card-snip">
+                                    {src.content || src.page_content}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-            )}
+            ))}
+          </div>
+        )}
 
-            {/* SKELETON LOADER */}
-            {loading && (
-              <div className="skeleton-container">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
-                  <Loader2 size={16} className="animate-spin" />
-                  <span>{status || "ANALYSE EN COURS..."}</span>
+        {/* SEARCH ROW (BOTTOM STICKY FOR ACTIVE CHAT, MIDDLE FOR HOME) */}
+        <div className="search-header-row" style={{ 
+          display: 'flex', 
+          gap: '1rem', 
+          width: '100%', 
+          maxWidth: '900px', 
+          margin: '0 auto', 
+          alignItems: 'center', 
+          justifyContent: 'center',
+          position: messages.length > 0 ? 'fixed' : 'relative',
+          bottom: messages.length > 0 ? '2rem' : 'auto',
+          left: messages.length > 0 ? '50%' : 'auto',
+          transform: messages.length > 0 ? 'translateX(-50%)' : 'none',
+          padding: messages.length > 0 ? '1rem 2rem' : '0',
+          background: messages.length > 0 ? 'var(--bg-color)' : 'transparent',
+          boxShadow: messages.length > 0 ? '0 -20px 40px var(--bg-color)' : 'none',
+          zIndex: 100,
+          transition: 'all 0.3s ease',
+          paddingLeft: messages.length > 0 ? (sidebarOpen ? 'calc(260px + 2rem)' : 'calc(80px + 2rem)') : '0'
+        }}>
+          <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, flex: 1, margin: 0, maxWidth: '100%' }}>
+            <div className="search-input-wrapper">
+              <input 
+                type="file" 
+                accept=".pdf" 
+                onChange={handleFileUpload} 
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                id="file-upload"
+              />
+              <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un PDF local">
+                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={18} strokeWidth={2.5} />}
+              </label>
+              <input
+                type="text"
+                className="main-search-input"
+                placeholder={messages.length > 0 ? "Poser une question de suivi..." : "Que souhaitez-vous savoir ?"}
+                value={query}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                onChange={(e) => setQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
+              />
+              <button onClick={() => handleSearch(query)} className="search-submit-btn" disabled={loading} title="Lancer l'analyse">
+                <Search size={18} strokeWidth={2.5} />
+              </button>
+              {uploadMessage && (
+                <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", zIndex: 5 }}>
+                  {uploadMessage}
                 </div>
-                <div className="skeleton-line title"></div>
-                <div className="skeleton-line full"></div>
-                <div className="skeleton-line full"></div>
-                <div className="skeleton-line medium"></div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* HOME MODE CONTROLS & WELCOME CARDS (ONLY ON ROOT SCREEN) */}
+        {messages.length === 0 && (
+          <div style={{ width: '100%', maxWidth: '680px', margin: '1.5rem auto 0' }}>
+            <div className="mode-segmented-control">
+              <button className={`mode-btn ${mode === 'hybrid' ? 'active' : ''}`} onClick={() => setMode('hybrid')}>
+                <Sparkles size={16} />
+                Hybride
+              </button>
+              <button className={`mode-btn ${mode === 'web' ? 'active' : ''}`} onClick={() => setMode('web')}>
+                <Globe size={16} />
+                Web
+              </button>
+              <button className={`mode-btn ${mode === 'local' ? 'active' : ''}`} onClick={() => setMode('local')}>
+                <Folder size={16} />
+                Local
+              </button>
+            </div>
+            
+            <div className="welcome-grid">
+              <div className="welcome-card" onClick={() => handleSearch("Explique le concept d'Agentic RAG")}>
+                <Cpu size={24} />
+                <div className="welcome-card-title">Agentic RAG</div>
+                <div className="welcome-card-subtitle">Comprendre l'architecture et ses avantages</div>
               </div>
-            )}
+              <div className="welcome-card" onClick={() => handleSearch("Quelles sont les dernières actus IA ?")}>
+                <Globe size={24} />
+                <div className="welcome-card-title">Actualités IA</div>
+                <div className="welcome-card-subtitle">Les dernières avancées du secteur</div>
+              </div>
+              <div className="welcome-card" onClick={() => handleSearch("Résume les informations clés du manuel")}>
+                <BookOpen size={24} />
+                <div className="welcome-card-title">Résumé Local</div>
+                <div className="welcome-card-subtitle">Synthèse de votre base documentaire</div>
+              </div>
+            </div>
+            
+            <div className="suggestions-container" style={{ marginTop: '4rem', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
+                Recherches suggérées
+              </p>
+              <div className="suggestions-flex" style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '800px', margin: '0 auto' }}>
+                <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")}>
+                  <Sparkles size={14} /> Comment optimiser un système RAG ?
+                </button>
+                <button className="suggestion-pill" onClick={() => handleSearch("Tendances de l'IA générative en 2026")}>
+                  <Globe size={14} /> Tendances de l'IA générative en 2026
+                </button>
+                <button className="suggestion-pill" onClick={() => handleSearch("Exemple de Prompt Engineering avancé")}>
+                  <Book size={14} /> Exemple de Prompt Engineering avancé
+                </button>
+                <button className="suggestion-pill" onClick={() => handleSearch("Sécurité et confidentialité des LLMs")}>
+                  <Key size={14} /> Sécurité et confidentialité des LLMs
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* FOOTER (ONLY ON ROOT SCREEN) */}
+        {messages.length === 0 && (
+          <div className="app-footer" style={{ position: 'absolute', bottom: '2rem', left: '0', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
+            Propulsé par Agentic RAG • v2.0
           </div>
         )}
 
