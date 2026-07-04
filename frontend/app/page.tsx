@@ -354,7 +354,7 @@ export default function Home() {
         <NeuralNetwork />
         
         {/* Ambient background glows for empty sides */}
-        {(!result && !loading) && (
+        {(messages.length === 0) && (
           <>
             <div className="ambient-glow glow-left"></div>
             <div className="ambient-glow glow-right"></div>
@@ -372,7 +372,7 @@ export default function Home() {
           </div>
         </div>
 
-        {(!result && !loading) && (
+        {(messages.length === 0) && (
           <div className="hero-wrapper" style={{ marginTop: '6vh' }}>
             <div className="hero-title-container">
               <h1 className="hero-title">KING2MO</h1>
