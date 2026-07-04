@@ -92,3 +92,4 @@ L'application sera accessible sur `http://localhost:3000` (ou 3001).
 
 ## 👥 Crédits
 Design de l'interface et architecture développés en collaboration avec l'assistant IA **Antigravity**.
+

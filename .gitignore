@@ -1,5 +1,6 @@
 # Secrets / APIs keys
 .env
+.streamlit/secrets.toml
 
 # Vector database storage
 chroma_db/

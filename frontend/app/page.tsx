@@ -1,11 +1,19 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Key, Link2, BookOpen, Clock, Copy, Check, Download, Book, X, Cpu, Globe, Folder, Eye, EyeOff, Paperclip } from "lucide-react";
+import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Key, Link2, BookOpen, Clock, Copy, Check, Download, Book, X, Cpu, Globe, Folder, Paperclip, ExternalLink, BarChart2, Image as ImageIcon } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend, BarChart, Bar } from 'recharts';
+
+// URL du backend configurable (m5) : évite le localhost:8000 codé en dur.
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+// Nombre max d'entrées conservées dans l'historique des coûts (m2).
+const MAX_COST_HISTORY = 100;
+
 // The NeuralNetwork component generates a constellation of nodes connecting to each other
 const NeuralNetwork = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -92,8 +100,7 @@ const NeuralNetwork = () => {
 
 export default function Home() {
   
-  const [geminiKey, setGeminiKey] = useState("");
-  const [tavilyKey, setTavilyKey] = useState("");
+  const [systemPassword, setSystemPassword] = useState("");
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
@@ -108,11 +115,30 @@ export default function Home() {
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const [showKeys, setShowKeys] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+
+
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [messages, setMessages] = useState<any[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Knowledge Base States
+  const [documents, setDocuments] = useState<string[]>([]);
+  const [isClearing, setIsClearing] = useState(false);
+  
+  // Cost State
+  const [totalCost, setTotalCost] = useState(0);
+  const [costHistory, setCostHistory] = useState<any[]>([]);
+  const [showDashboard, setShowDashboard] = useState(false);
+  const [dashboardOpacity, setDashboardOpacity] = useState(0.4);
+
+  // Selection / Edit Mode States
+  const [isEditingHistory, setIsEditingHistory] = useState(false);
+  const [selectedHistory, setSelectedHistory] = useState<string[]>([]);
+  const [isEditingDocs, setIsEditingDocs] = useState(false);
+  const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
 
   // Auto-scroll vers le dernier message (nouvelle question ou réponse reçue)
   useEffect(() => {
@@ -121,16 +147,135 @@ export default function Home() {
     }
   }, [messages]);
 
-  // Load history & keys on mount
+  // Load history & token on mount
   useEffect(() => {
-    const savedGemini = localStorage.getItem("gemini_key");
-    const savedTavily = localStorage.getItem("tavily_key");
-    if (savedGemini) setGeminiKey(savedGemini);
-    if (savedTavily) setTavilyKey(savedTavily);
+    const savedToken = localStorage.getItem("backend_token");
+    if (savedToken) setSystemPassword(savedToken);
 
-    const savedHistory = localStorage.getItem("rag_history");
-    if (savedHistory) setHistory(JSON.parse(savedHistory));
+    try {
+      const savedHistory = localStorage.getItem("rag_history");
+      if (savedHistory) setHistory(JSON.parse(savedHistory));
+    } catch (e) {
+      console.warn("rag_history illisible, réinitialisé.", e);
+      localStorage.removeItem("rag_history");
+    }
+
+    try {
+      const savedCostHistory = localStorage.getItem("rag_cost_history");
+      if (savedCostHistory) {
+        const parsed = JSON.parse(savedCostHistory);
+        if (Array.isArray(parsed)) {
+          setCostHistory(parsed);
+          const tot = parsed.reduce((acc: number, item: any) => acc + (item?.cost || 0), 0);
+          setTotalCost(tot);
+        }
+      }
+    } catch (e) {
+      console.warn("rag_cost_history illisible, réinitialisé.", e);
+      localStorage.removeItem("rag_cost_history");
+    }
+    
+    fetchDocuments();
   }, []);
+
+  const fetchDocuments = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/documents`, { headers: { "X-API-Token": systemPassword } });
+      const data = await res.json();
+      if (data.status === "success") {
+        setDocuments(data.documents);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const clearDocuments = async () => {
+    setIsClearing(true);
+    try {
+      await fetch(`${API_BASE}/api/documents`, { method: "DELETE", headers: { "X-API-Token": systemPassword } });
+      setDocuments([]);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsClearing(false);
+  };
+
+  const deleteDocument = async (filename: string) => {
+    try {
+      await fetch(`${API_BASE}/api/documents/${encodeURIComponent(filename)}`, { method: "DELETE", headers: { "X-API-Token": systemPassword } });
+      fetchDocuments();
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const deleteSelectedDocs = async () => {
+    setIsClearing(true);
+    try {
+      await Promise.all(selectedDocs.map(doc =>
+        fetch(`${API_BASE}/api/documents/${encodeURIComponent(doc)}`, { method: "DELETE", headers: { "X-API-Token": systemPassword } })
+      ));
+      await fetchDocuments();
+      setSelectedDocs([]);
+      setIsEditingDocs(false);
+    } catch (e) {
+      console.error(e);
+    }
+    setIsClearing(false);
+  };
+
+  const deleteSelectedHistory = () => {
+    const newHistory = history.filter(h => !selectedHistory.includes(h));
+    setHistory(newHistory);
+    localStorage.setItem("rag_history", JSON.stringify(newHistory));
+    setSelectedHistory([]);
+    setIsEditingHistory(false);
+  };
+
+  const clearAllHistory = () => {
+    setHistory([]);
+    localStorage.setItem("rag_history", JSON.stringify([]));
+    setSelectedHistory([]);
+    setIsEditingHistory(false);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setSelectedImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const exportChatToMarkdown = () => {
+    if (messages.length === 0) return;
+    let md = "# Export de Conversation (KING2MO)\\n\\n";
+    messages.forEach(msg => {
+      md += `**${msg.role === 'user' ? 'Vous' : 'IA'}** :\\n`;
+      md += `${msg.content}\\n\\n`;
+    });
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `conversation_${new Date().getTime()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const toggleHistorySelection = (h: string) => {
+    setSelectedHistory(prev => prev.includes(h) ? prev.filter(item => item !== h) : [...prev, h]);
+  };
+
+  const toggleDocSelection = (doc: string) => {
+    setSelectedDocs(prev => prev.includes(doc) ? prev.filter(item => item !== doc) : [...prev, doc]);
+  };
 
   // Apply theme
   useEffect(() => {
@@ -157,7 +302,13 @@ export default function Home() {
     const userMsgId = Date.now().toString();
     const userMsg = { id: userMsgId, role: "user", content: newQuery };
     
-    // 2. Add Assistant Loading Message
+    // 2. Build conversational history from current messages
+    // We only take the text content, and ignore the initial empty assistant loading message.
+    const chatHistory = messages
+      .filter(m => !m.loading && m.content)
+      .map(m => ({ role: m.role, content: m.content }));
+      
+    // 3. Add Assistant Loading Message
     const assistantMsgId = (Date.now() + 1).toString();
     const assistantMsg = { 
       id: assistantMsgId, 
@@ -173,11 +324,37 @@ export default function Home() {
     setLoading(true);
 
     try {
-      const response = await fetch("http://localhost:8000/api/chat", {
+      const response = await fetch(`${API_BASE}/api/chat`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: newQuery, gemini_key: geminiKey, tavily_key: tavilyKey, mode }),
+        headers: { 
+          "Content-Type": "application/json",
+          "X-API-Token": systemPassword
+        },
+        body: JSON.stringify({
+          query: newQuery,
+          mode,
+          history: chatHistory,
+          image_base64: selectedImage
+        }),
       });
+
+      setSelectedImage(null);
+
+      // C2 : on vérifie le statut HTTP. Une 422 (clé manquante) ou une 5xx
+      // renvoie du JSON, pas du SSE : sans ce garde, le flux ne contiendrait
+      // aucun événement et le spinner tournerait indéfiniment.
+      if (!response.ok) {
+        let detail = `Erreur serveur (HTTP ${response.status}).`;
+        try {
+          const errBody = await response.json();
+          if (errBody?.detail) {
+            detail = Array.isArray(errBody.detail)
+              ? errBody.detail.map((d: any) => d.msg || JSON.stringify(d)).join(" ; ")
+              : String(errBody.detail);
+          }
+        } catch { /* corps non-JSON, on garde le message par défaut */ }
+        throw new Error(detail);
+      }
 
       if (!response.body) throw new Error("ReadableStream not yet supported in this browser.");
 
@@ -201,11 +378,48 @@ export default function Home() {
                 if (data.type === "status") {
                   setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, status: `TRAITEMENT : ${data.node.toUpperCase()}` } : m));
                 } else if (data.type === "result") {
+                  const inTok = data.input_tokens || 0;
+                  const outTok = data.output_tokens || 0;
+                  const sCount = data.search_count || 0;
+                  
+                  let usedModel = "Serveur IA";
+                  let inPrice = 0.075;
+                  let outPrice = 0.30;
+                  // (Le modèle exact est connu du backend)
+                  
+                  const msgCost = (inTok / 1000000) * inPrice + (outTok / 1000000) * outPrice + sCount * 0.005;
+                  
+                  const now = new Date();
+                  const detailedTime = `${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
+
+                  const newHistoryItem = {
+                    time: detailedTime,
+                    cost: msgCost,
+                    inTokens: inTok,
+                    outTokens: outTok,
+                    searchCount: sCount,
+                    model: usedModel
+                  };
+                  setCostHistory(prev => {
+                    // m2 : on borne l'historique pour ne pas saturer le localStorage.
+                    const updated = [...prev, newHistoryItem].slice(-MAX_COST_HISTORY);
+                    localStorage.setItem("rag_cost_history", JSON.stringify(updated));
+                    return updated;
+                  });
+                  setTotalCost(prev => prev + msgCost);
+                  
                   setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
                     ...m, 
                     content: data.generation,
                     sources: data.sources || [],
-                    metrics: { corrections: data.corrections, duration: data.duration, webUsed: data.web_used },
+                    metrics: { 
+                        corrections: data.corrections, 
+                        duration: data.duration, 
+                        webUsed: data.web_used,
+                        cost: msgCost,
+                        inTokens: inTok,
+                        outTokens: outTok
+                    },
                     loading: false, 
                     status: null 
                   } : m));
@@ -219,19 +433,31 @@ export default function Home() {
                   } : m));
                   setLoading(false);
                 }
-              } catch (e) {}
+              } catch (e) {
+                console.debug("Erreur de parsing SSE :", e, line);
+              }
             }
           }
         }
       }
-    } catch (error) {
-      setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
-        ...m, 
-        content: "❌ Erreur de connexion au serveur Backend.", 
-        loading: false, 
-        status: null 
+    } catch (error: any) {
+      // m4 : message d'erreur plus précis (statut/détail du backend).
+      const msg = error?.message || "Erreur de connexion au serveur Backend.";
+      setMessages(prev => prev.map(m => m.id === assistantMsgId ? {
+        ...m,
+        content: `❌ ${msg}`,
+        loading: false,
+        status: null
       } : m));
+    } finally {
+      // C2 : garantit l'arrêt du spinner même si le flux se termine sans
+      // événement "result"/"error" (réponse inattendue, connexion coupée…).
       setLoading(false);
+      setMessages(prev => prev.map(m =>
+        (m.id === assistantMsgId && m.loading)
+          ? { ...m, loading: false, status: null, content: m.content || "❌ Aucune réponse reçue du serveur." }
+          : m
+      ));
     }
   };
 
@@ -275,13 +501,19 @@ export default function Home() {
     formData.append("file", file);
 
     try {
-      const response = await fetch("http://localhost:8000/api/upload", {
+      const response = await fetch(`${API_BASE}/api/upload`, {
         method: "POST",
+        headers: { "X-API-Token": systemPassword },
         body: formData,
       });
       const data = await response.json();
       if (data.status === "success") {
         setUploadMessage(`✅ ${data.message}`);
+        fetchDocuments(); // Refresh list
+      } else if (data.status === "warning") {
+        setUploadMessage(`⚠️ ${data.message}`);
+      } else if (!response.ok) {
+        setUploadMessage(`❌ Erreur : ${data.detail || data.message || `HTTP ${response.status}`}`);
       } else {
         setUploadMessage(`❌ Erreur : ${data.message}`);
       }
@@ -299,6 +531,8 @@ export default function Home() {
     }, 5000);
   };
 
+  const bgRGB = theme === 'dark' ? '5, 5, 8' : '255, 255, 255';
+
   return (
     <div className="app-container">
       {/* Authentic Matrix Glow */}
@@ -314,50 +548,269 @@ export default function Home() {
         <div className="sb-brand" onClick={handleReset} style={{ cursor: 'pointer' }}>KING2MO</div>
         
         <div>
-          <div className="sb-section-title">AUTHENTIFICATION API</div>
+          <div className="sb-section-title">ACCÈS SYSTÈME</div>
           <div className="input-group">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label>Gemini API Key</label>
-              <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', opacity: geminiKey ? 1 : 0, transition: 'opacity 0.3s' }}>✓ Auto-sauvegardé</span>
+              <label>Mot de passe</label>
+              <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', opacity: systemPassword ? 1 : 0, transition: 'opacity 0.3s' }}>✓ Sauvegardé</span>
             </div>
             <div style={{ position: 'relative' }}>
-              <input type={showKeys ? "text" : "password"} className="sidebar-input" placeholder="Clé Gemini..." value={geminiKey} onChange={(e) => { setGeminiKey(e.target.value); localStorage.setItem('gemini_key', e.target.value); }} style={{ paddingRight: '2.5rem' }} />
-              <button onClick={() => setShowKeys(!showKeys)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
-                {showKeys ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-          <div className="input-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label>Tavily API Key</label>
-              <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', opacity: tavilyKey ? 1 : 0, transition: 'opacity 0.3s' }}>✓ Auto-sauvegardé</span>
-            </div>
-            <div style={{ position: 'relative' }}>
-              <input type={showKeys ? "text" : "password"} className="sidebar-input" placeholder="Clé Tavily..." value={tavilyKey} onChange={(e) => { setTavilyKey(e.target.value); localStorage.setItem('tavily_key', e.target.value); }} style={{ paddingRight: '2.5rem' }} />
-              <button onClick={() => setShowKeys(!showKeys)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
-                {showKeys ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+              <input 
+                type="password" 
+                className="sidebar-input" 
+                placeholder="Mot de passe du serveur..." 
+                value={systemPassword} 
+                onChange={(e) => { setSystemPassword(e.target.value); localStorage.setItem('backend_token', e.target.value); }} 
+              />
             </div>
           </div>
         </div>
 
         {history.length > 0 && (
           <div className="history-section">
-            <div className="sb-section-title">HISTORIQUE RÉCENT</div>
+            <div className="sb-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>HISTORIQUE RÉCENT</span>
+              <button 
+                onClick={() => setIsEditingHistory(!isEditingHistory)} 
+                style={{ background: 'none', border: 'none', color: isEditingHistory ? 'var(--accent-color)' : 'var(--text-secondary)', fontSize: '0.65rem', cursor: 'pointer', opacity: 0.8 }}
+              >
+                {isEditingHistory ? 'TERMINER' : 'GÉRER'}
+              </button>
+            </div>
             <div className="history-list">
               {history.map((h, i) => (
-                <div key={i} className="history-item" onClick={() => handleSearch(h)}>
-                  <Clock size={14} />
+                <div key={i} className="history-item" onClick={() => isEditingHistory ? toggleHistorySelection(h) : handleSearch(h)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {isEditingHistory ? (
+                    <input type="checkbox" checked={selectedHistory.includes(h)} readOnly style={{ cursor: 'pointer' }} />
+                  ) : (
+                    <Clock size={14} />
+                  )}
                   <span>{h.length > 25 ? h.substring(0, 25) + '...' : h}</span>
                 </div>
               ))}
             </div>
+            {isEditingHistory && (
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+                <button 
+                  onClick={deleteSelectedHistory}
+                  disabled={selectedHistory.length === 0}
+                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: selectedHistory.length > 0 ? '#ef4444' : 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: selectedHistory.length > 0 ? 'pointer' : 'not-allowed' }}
+                >
+                  Supprimer
+                </button>
+                <button 
+                  onClick={clearAllHistory}
+                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: '#ef4444', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  Tout vider
+                </button>
+              </div>
+            )}
           </div>
         )}
+
+        {/* On a retiré le widget de coûts de session d'ici pour le mettre en haut à droite */}
+
+        <div className="history-section" style={{ marginTop: '2rem' }}>
+          <div className="sb-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span>BASE DE CONNAISSANCES</span>
+            {documents.length > 0 && (
+              <button 
+                onClick={() => setIsEditingDocs(!isEditingDocs)} 
+                disabled={isClearing}
+                style={{ background: 'none', border: 'none', color: isEditingDocs ? 'var(--accent-color)' : 'var(--text-secondary)', fontSize: '0.65rem', cursor: 'pointer', opacity: 0.8 }}
+              >
+                {isEditingDocs ? 'TERMINER' : 'GÉRER'}
+              </button>
+            )}
+          </div>
+          <div className="history-list">
+            {documents.length === 0 ? (
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>Aucun document local.</div>
+            ) : (
+              documents.map((doc, i) => (
+                <div key={i} className="history-item" onClick={() => isEditingDocs ? toggleDocSelection(doc) : null} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isEditingDocs ? 'pointer' : 'default' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                    {isEditingDocs ? (
+                      <input type="checkbox" checked={selectedDocs.includes(doc)} readOnly style={{ cursor: 'pointer' }} />
+                    ) : (
+                      <Book size={14} style={{ flexShrink: 0 }} />
+                    )}
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.8rem' }}>{doc}</span>
+                  </div>
+                  {!isEditingDocs && (
+                    <button 
+                      aria-label="Supprimer le document"
+                      onClick={(e) => { e.stopPropagation(); deleteDocument(doc); }} 
+                      style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
+                      title="Supprimer"
+                    >
+                      <X size={14} />
+                    </button>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+          {isEditingDocs && documents.length > 0 && (
+            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
+              <button 
+                onClick={deleteSelectedDocs}
+                disabled={selectedDocs.length === 0 || isClearing}
+                style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: selectedDocs.length > 0 ? '#ef4444' : 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: selectedDocs.length > 0 ? 'pointer' : 'not-allowed' }}
+              >
+                {isClearing ? 'En cours...' : 'Supprimer'}
+              </button>
+              <button 
+                onClick={clearDocuments}
+                disabled={isClearing}
+                style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: '#ef4444', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }}
+              >
+                Tout vider
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       {/* MAIN CONTENT */}
       <div className="main-content" style={{ paddingLeft: sidebarOpen ? "2rem" : "5rem", display: 'flex', flexDirection: 'column' }}>
+        
+        {/* DASHBOARD OVERLAY */}
+        {showDashboard && (
+          <div onClick={() => setShowDashboard(false)} style={{ position: 'absolute', inset: 0, left: sidebarOpen ? "300px" : "80px", zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '900px', maxHeight: '90%', background: `rgba(${bgRGB}, ${dashboardOpacity})`, backdropFilter: `blur(${dashboardOpacity * 40}px)`, WebkitBackdropFilter: `blur(${dashboardOpacity * 40}px)`, border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '2rem', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+              <h1 style={{ fontSize: '1.5rem', fontWeight: 600, fontFamily: "'Outfit', sans-serif", margin: 0, flex: '1 1 auto', minWidth: '250px' }}><BarChart2 style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'text-bottom' }} /> Tableau de Bord API</h1>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginLeft: 'auto' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'var(--glass-bg)', padding: '0.4rem 0.8rem', borderRadius: '4px', border: '1px solid var(--glass-border)' }}>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opacité</span>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="0.95" 
+                    step="0.05" 
+                    value={dashboardOpacity} 
+                    onChange={(e) => setDashboardOpacity(Number(e.target.value))}
+                    style={{ width: '80px', accentColor: 'var(--text-primary)', cursor: 'pointer' }}
+                  />
+                </div>
+                <button aria-label="Fermer le tableau de bord" onClick={() => setShowDashboard(false)} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.2s' }}>
+                  <X size={16} /> Fermer
+                </button>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '3rem', marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
+              <div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Total expenses</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+                  ${totalCost.toFixed(5)} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>USD</span>
+                </div>
+              </div>
+              <div>
+                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Total requests</div>
+                <div style={{ fontSize: '1.8rem', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
+                  {costHistory.length}
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '5rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 0.5rem 0', color: 'var(--text-primary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Global usage</h3>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Expenses <span style={{ color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>${totalCost.toFixed(5)}</span></div>
+                </div>
+              </div>
+              
+              {costHistory.length > 0 ? (
+                <div style={{ height: '180px', width: '100%' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={costHistory} margin={{ top: 10, right: 0, left: -20, bottom: 60 }} barCategoryGap="5%">
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
+                      <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
+                      <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v.toFixed(4)}`} />
+                      <Tooltip cursor={{ fill: 'var(--glass-border)', opacity: 0.2 }} contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }} itemStyle={{ color: '#fbbf24', fontWeight: 'bold' }} />
+                      <Bar dataKey="cost" name="Cost" fill="#fbbf24" radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', height: '180px', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>Aucune donnée disponible. Posez une question pour commencer.</div>
+              )}
+            </div>
+
+            {(() => {
+              const modelsData: Record<string, { totalCost: number, totalInTokens: number, totalOutTokens: number, history: any[] }> = {};
+              costHistory.forEach(curr => {
+                const mod = curr.model || "Serveur IA";
+                if (!modelsData[mod]) modelsData[mod] = { totalCost: 0, totalInTokens: 0, totalOutTokens: 0, history: [] };
+                modelsData[mod].totalCost += curr.cost;
+                modelsData[mod].totalInTokens += curr.inTokens;
+                modelsData[mod].totalOutTokens += curr.outTokens;
+                modelsData[mod].history.push(curr);
+              });
+              
+              return Object.entries(modelsData).map(([modelName, data]) => (
+                <div key={modelName} style={{ marginBottom: '3rem' }}>
+                  <h4 style={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', marginBottom: '2rem', color: 'var(--text-primary)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>{modelName.toLowerCase()}-model</h4>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
+                    
+                    {/* API Requests / Cost */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>API expenses</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>${data.totalCost.toFixed(5)}</span>
+                      </div>
+                      <div style={{ height: '140px', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={data.history} margin={{ top: 10, right: 0, left: -20, bottom: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
+                            <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
+                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v.toFixed(3)}`} />
+                            <Tooltip 
+                              cursor={{ stroke: 'var(--text-secondary)', strokeWidth: 1, strokeDasharray: '4 4' }} 
+                              contentStyle={{ background: '#202022', border: '1px solid #333', borderRadius: '8px', color: '#fff' }} 
+                              itemStyle={{ color: '#fff' }} 
+                              labelStyle={{ color: '#aaa', marginBottom: '4px' }} 
+                            />
+                            <Area type="monotone" dataKey="cost" name="API requests" stroke={modelName === "DeepSeek" ? "#5c7cfa" : "#20c997"} strokeWidth={2} fill={modelName === "DeepSeek" ? "#5c7cfa" : "#20c997"} fillOpacity={0.7} />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Tokens */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tokens (In/Out)</span>
+                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{(data.totalInTokens + data.totalOutTokens).toLocaleString()}</span>
+                      </div>
+                      <div style={{ height: '140px', width: '100%' }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={data.history} margin={{ top: 10, right: 0, left: -20, bottom: 20 }} barCategoryGap="5%">
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
+                            <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
+                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v} />
+                            <Tooltip cursor={{ fill: 'var(--glass-border)', opacity: 0.2 }} contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }} />
+                            <Bar dataKey="inTokens" stackId="t" name="In Tokens" fill={modelName === "DeepSeek" ? "#93c5fd" : "#6ee7b7"} radius={[0, 0, 0, 0]} />
+                            <Bar dataKey="outTokens" stackId="t" name="Out Tokens" fill={modelName === "DeepSeek" ? "#3b82f6" : "#10b981"} radius={[2, 2, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              ));
+            })()}
+            </div>
+          </div>
+        )}
+        
         <div className="noise-overlay"></div>
         <NeuralNetwork />
         
@@ -371,6 +824,57 @@ export default function Home() {
         
         {/* Top Right Controls */}
         <div className="top-right-controls" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
+          {messages.length > 0 && (
+            <button 
+              onClick={exportChatToMarkdown}
+              className="cost-pill"
+              title="Exporter la conversation en Markdown"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'var(--glass-bg)',
+                border: '1px solid var(--glass-border)',
+                padding: '0.5rem 1rem',
+                borderRadius: '20px',
+                color: 'var(--text-color)',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                transition: 'all 0.3s ease',
+                backdropFilter: 'blur(10px)'
+              }}
+            >
+              <Download size={14} />
+              <span>Export</span>
+            </button>
+          )}
+          <button 
+            onClick={() => setShowDashboard(true)}
+            className="cost-pill"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              background: 'var(--glass-bg)',
+              border: '1px solid var(--glass-border)',
+              padding: '0.4rem 0.8rem',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              color: 'var(--text-primary)'
+            }}
+            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--accent-color)'; }}
+            onMouseOut={(e) => { e.currentTarget.style.background = 'var(--glass-bg)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
+          >
+            <Cpu size={14} style={{ color: 'var(--accent-color)' }} />
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
+              ${totalCost.toFixed(5)}
+            </span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginLeft: '0.3rem', borderLeft: '1px solid var(--glass-border)', paddingLeft: '0.5rem', opacity: 0.8 }}>
+              {!systemPassword ? "Verrouillé" : "Serveur IA"}
+            </span>
+          </button>
+
           <div className="theme-switch-wrapper" style={{ margin: 0 }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{theme === 'dark' ? 'DARK' : 'LIGHT'}</span>
             <label className="theme-switch">
@@ -437,9 +941,12 @@ export default function Home() {
                           <ReactMarkdown 
                             remarkPlugins={[remarkGfm]}
                             components={{
-                              code({node, inline, className, children, ...props}: any) {
+                              code({node, className, children, ...props}: any) {
+                                // M5 : react-markdown v10 ne fournit plus la prop `inline`.
+                                // On détecte un bloc via la présence d'une classe language-*
+                                // (les codes inline n'en ont pas).
                                 const match = /language-(\w+)/.exec(className || '')
-                                return !inline && match ? (
+                                return match ? (
                                   <SyntaxHighlighter
                                     style={vscDarkPlus as any}
                                     language={match[1]}
@@ -481,9 +988,10 @@ export default function Home() {
                                   <div key={i} className="source-card-compact" onClick={() => url && window.open(url, "_blank")} title={url || rawSource} style={{ cursor: url ? 'pointer' : 'default', flex: '0 0 240px' }}>
                                     <div className="source-card-header">
                                       <span className="source-card-number">{i + 1}</span>
-                                      <span className="source-card-title">
-                                        {url ? <Globe size={12}/> : <Folder size={12}/>}
-                                        {label}
+                                      <span className="source-card-title" style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {url ? <Globe size={12} style={{ flexShrink: 0 }}/> : <Folder size={12} style={{ flexShrink: 0 }}/>}
+                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
+                                        {url && <ExternalLink size={12} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--accent-color)' }} />}
                                       </span>
                                     </div>
                                     <div className="source-card-snip">
@@ -514,6 +1022,9 @@ export default function Home() {
                               )}
                               <span>🔧 Corrections: {msg.metrics.corrections || 0}</span>
                               <span>🌐 Web: {msg.metrics.webUsed ? 'Oui' : 'Non'}</span>
+                              {msg.metrics.cost !== undefined && (
+                                <span style={{ color: 'var(--accent-color)' }}>💸 ${msg.metrics.cost.toFixed(5)}</span>
+                              )}
                             </div>
                           )}
                         </div>
@@ -542,7 +1053,8 @@ export default function Home() {
           left: messages.length > 0 ? (sidebarOpen ? 'calc(50% + 150px)' : '50%') : 'auto',
           transform: messages.length > 0 ? 'translateX(-50%)' : 'none',
           padding: messages.length > 0 ? '1rem 2rem' : '0',
-          background: messages.length > 0 ? 'var(--bg-color)' : 'transparent',
+          background: messages.length > 0 ? `rgba(${bgRGB}, 0.8)` : 'transparent',
+          backdropFilter: messages.length > 0 ? 'blur(10px)' : 'none',
           boxShadow: messages.length > 0 ? '0 -20px 40px var(--bg-color)' : 'none',
           zIndex: 100,
           transition: 'all 0.3s ease'
@@ -551,14 +1063,25 @@ export default function Home() {
             <div className="search-input-wrapper">
               <input 
                 type="file" 
-                accept=".pdf" 
+                accept=".pdf,.txt,.docx,.xlsx,.pptx" 
                 onChange={handleFileUpload} 
                 ref={fileInputRef}
                 style={{ display: 'none' }}
                 id="file-upload"
               />
-              <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un PDF local">
+              <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un document">
                 {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={18} strokeWidth={2.5} />}
+              </label>
+              <input 
+                type="file" 
+                accept="image/*" 
+                onChange={handleImageUpload} 
+                ref={imageInputRef}
+                style={{ display: 'none' }}
+                id="image-upload"
+              />
+              <label htmlFor="image-upload" className="search-attach-btn" title="Ajouter une image">
+                <ImageIcon size={18} strokeWidth={2.5} />
               </label>
               <input
                 type="text"
@@ -570,6 +1093,14 @@ export default function Home() {
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
               />
+              {selectedImage && (
+                <div style={{ position: 'absolute', bottom: '120%', left: '1rem', background: 'var(--glass-bg)', padding: '0.2rem', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', zIndex: 10 }}>
+                  <img src={selectedImage} alt="Preview" style={{ height: '40px', borderRadius: '4px' }} />
+                  <button onClick={() => setSelectedImage(null)} style={{ background: 'var(--accent-color)', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}>
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
               <button onClick={() => handleSearch(query)} className="search-submit-btn" disabled={loading} title="Lancer l'analyse">
                 <Search size={18} strokeWidth={2.5} />
               </button>
@@ -622,17 +1153,17 @@ export default function Home() {
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
                 Recherches suggérées
               </p>
-              <div className="suggestions-flex" style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '800px', margin: '0 auto' }}>
-                <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")}>
+              <div className="suggestions-flex" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'center', maxWidth: '800px', margin: '0 auto' }}>
+                <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")} style={{ width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
                   <Sparkles size={14} /> Comment optimiser un système RAG ?
                 </button>
-                <button className="suggestion-pill" onClick={() => handleSearch("Tendances de l'IA générative en 2026")}>
+                <button className="suggestion-pill" onClick={() => handleSearch("Tendances de l'IA générative en 2026")} style={{ width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
                   <Globe size={14} /> Tendances de l'IA générative en 2026
                 </button>
-                <button className="suggestion-pill" onClick={() => handleSearch("Exemple de Prompt Engineering avancé")}>
+                <button className="suggestion-pill" onClick={() => handleSearch("Exemple de Prompt Engineering avancé")} style={{ width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
                   <Book size={14} /> Exemple de Prompt Engineering avancé
                 </button>
-                <button className="suggestion-pill" onClick={() => handleSearch("Sécurité et confidentialité des LLMs")}>
+                <button className="suggestion-pill" onClick={() => handleSearch("Sécurité et confidentialité des LLMs")} style={{ width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
                   <Key size={14} /> Sécurité et confidentialité des LLMs
                 </button>
               </div>
@@ -642,8 +1173,8 @@ export default function Home() {
 
         {/* FOOTER (ONLY ON ROOT SCREEN) */}
         {messages.length === 0 && (
-          <div className="app-footer" style={{ position: 'absolute', bottom: '2rem', left: '0', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
-            Propulsé par Agentic RAG • v2.0
+          <div className="app-footer" style={{ marginTop: '4rem', marginBottom: '2rem', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
+            Propulsé par Agentic RAG • v3.1
           </div>
         )}
 
