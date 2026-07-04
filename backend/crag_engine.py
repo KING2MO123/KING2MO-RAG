@@ -199,6 +199,7 @@ def generate(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
 
     llm = get_llm(api_key, 0.2, model)
     context = "\n\n".join(doc.page_content for doc in documents)
+    
     prompt = ChatPromptTemplate.from_messages([
         ("system",
          "You are an assistant for question-answering tasks.\n"

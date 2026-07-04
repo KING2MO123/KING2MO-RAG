@@ -1,36 +1,104 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-
-// The Particles component generates floating embers
-const Particles = () => {
-  const [embers, setEmbers] = useState<any[]>([]);
+import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Moon, Sun, Key, Link2, BookOpen, Clock, Copy, Download, Book, FileText, X, ExternalLink, Cpu, Globe, Folder, Eye, EyeOff, Paperclip } from "lucide-react";
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+// The NeuralNetwork component generates a constellation of nodes connecting to each other
+const NeuralNetwork = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const newEmbers = Array.from({ length: 30 }).map((_, i) => ({
-      id: i,
-      left: Math.random() * 100 + "%",
-      animationDuration: Math.random() * 5 + 3 + "s", 
-      animationDelay: Math.random() * 5 + "s",
-    }));
-    setEmbers(newEmbers);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    let animationFrameId: number;
+    let particles: { x: number, y: number, vx: number, vy: number, radius: number }[] = [];
+    const particleCount = 60;
+    const connectionDistance = 150;
+    const speed = 0.3;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    window.addEventListener('resize', resize);
+    resize();
+
+    // Initialize
+    for (let i = 0; i < particleCount; i++) {
+      particles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * speed,
+        vy: (Math.random() - 0.5) * speed,
+        radius: Math.random() * 1.5 + 0.5
+      });
+    }
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Update and draw particles
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.6)'; // Emerald color, slightly accentuated
+        ctx.fill();
+      });
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < connectionDistance) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            const opacity = 1 - (dist / connectionDistance);
+            ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.25})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(draw);
+    };
+
+    draw();
+
+    return () => {
+      window.removeEventListener('resize', resize);
+      cancelAnimationFrame(animationFrameId);
+    };
   }, []);
 
-  return (
-    <div id="particles">
-      {embers.map((ember) => (
-        <div key={ember.id} className="ember" style={{ left: ember.left, animationDuration: ember.animationDuration, animationDelay: ember.animationDelay }}></div>
-      ))}
-    </div>
-  );
+  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2, pointerEvents: 'none' }} />;
 };
 
 export default function Home() {
+  
   const [geminiKey, setGeminiKey] = useState("");
   const [tavilyKey, setTavilyKey] = useState("");
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<string | null>(null);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<string | null>(null);
+  const [sources, setSources] = useState<any[]>([]);
+  const [metrics, setMetrics] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<string[]>([]);
   
@@ -43,8 +111,10 @@ export default function Home() {
   const [uploading, setUploading] = useState(false);
   const [uploadMessage, setUploadMessage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [showKeys, setShowKeys] = useState(false);
   const [showSources, setShowSources] = useState(true);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   // Load history & keys on mount
   useEffect(() => {
@@ -78,18 +148,22 @@ export default function Home() {
       return;
     }
 
-    setQuery(searchQuery);
-    saveToHistory(searchQuery);
+    const newQuery = searchQuery;
+    setQuery("");
+    saveToHistory(newQuery);
+    
+    setResult(null);
+    setSources([]);
+    setMetrics(null);
     setLoading(true);
     setStatus("Initialisation...");
-    setResult(null);
     setShowSources(true);
 
     try {
       const response = await fetch("http://localhost:8000/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: searchQuery, gemini_key: geminiKey, tavily_key: tavilyKey, mode }),
+        body: JSON.stringify({ query: newQuery, gemini_key: geminiKey, tavily_key: tavilyKey, mode }),
       });
 
       if (!response.body) throw new Error("ReadableStream not yet supported in this browser.");
@@ -111,7 +185,9 @@ export default function Home() {
                 if (data.type === "status") {
                   setStatus(`TRAITEMENT : ${data.node.toUpperCase()}`);
                 } else if (data.type === "result") {
-                  setResult(data);
+                  setResult(data.generation);
+                  setSources(data.sources);
+                  setMetrics({ corrections: data.corrections });
                   setStatus(null);
                   setLoading(false);
                 } else if (data.type === "error") {
@@ -129,16 +205,16 @@ export default function Home() {
     }
   };
 
-  const copyToClipboard = () => {
-    if (result && result.generation) {
-      navigator.clipboard.writeText(result.generation);
+  const copyToClipboard = (text: string) => {
+    if (text) {
+      navigator.clipboard.writeText(text);
       alert("Copié dans le presse-papiers !");
     }
   };
 
-  const downloadMarkdown = () => {
-    if (!result) return;
-    const blob = new Blob([`# Résultat pour : ${query}\n\nMode: ${mode}\n\n${result.generation}`], { type: 'text/markdown' });
+  const downloadMarkdown = (text: string) => {
+    if (!text) return;
+    const blob = new Blob([`# Résultat KING2MO\n\nMode: ${mode}\n\n${text}`], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -188,14 +264,14 @@ export default function Home() {
 
   return (
     <div className="app-container">
+      {/* Authentic Matrix Glow */}
+      <div className="ambient-glow"></div>
+      <div className={`search-dim-overlay ${isSearchFocused ? 'active' : ''}`}></div>
+
       {/* SIDEBAR */}
       <div className={`sidebar ${!sidebarOpen ? "collapsed" : ""}`}>
         <div className="sidebar-toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          {sidebarOpen ? (
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          ) : (
-            <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          )}
+          <SidebarIcon size={20} />
         </div>
 
         <div className="sb-brand">KING2MO</div>
@@ -210,7 +286,7 @@ export default function Home() {
             <div style={{ position: 'relative' }}>
               <input type={showKeys ? "text" : "password"} className="sidebar-input" placeholder="Clé Gemini..." value={geminiKey} onChange={(e) => { setGeminiKey(e.target.value); localStorage.setItem('gemini_key', e.target.value); }} style={{ paddingRight: '2.5rem' }} />
               <button onClick={() => setShowKeys(!showKeys)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
-                {showKeys ? <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> : <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>}
+                {showKeys ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -222,7 +298,7 @@ export default function Home() {
             <div style={{ position: 'relative' }}>
               <input type={showKeys ? "text" : "password"} className="sidebar-input" placeholder="Clé Tavily..." value={tavilyKey} onChange={(e) => { setTavilyKey(e.target.value); localStorage.setItem('tavily_key', e.target.value); }} style={{ paddingRight: '2.5rem' }} />
               <button onClick={() => setShowKeys(!showKeys)} style={{ position: 'absolute', right: '0.5rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', display: 'flex' }}>
-                {showKeys ? <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg> : <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>}
+                {showKeys ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -234,7 +310,7 @@ export default function Home() {
             <div className="history-list">
               {history.map((h, i) => (
                 <div key={i} className="history-item" onClick={() => handleSearch(h)}>
-                  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <Clock size={14} />
                   <span>{h.length > 25 ? h.substring(0, 25) + '...' : h}</span>
                 </div>
               ))}
@@ -244,8 +320,17 @@ export default function Home() {
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="main-content" style={{ paddingLeft: sidebarOpen ? "2rem" : "5rem" }}>
-        <Particles />
+      <div className="main-content" style={{ paddingLeft: sidebarOpen ? "2rem" : "5rem", display: 'flex', flexDirection: 'column' }}>
+        <div className="noise-overlay"></div>
+        <NeuralNetwork />
+        
+        {/* Ambient background glows for empty sides */}
+        {(!result && !loading) && (
+          <>
+            <div className="ambient-glow glow-left"></div>
+            <div className="ambient-glow glow-right"></div>
+          </>
+        )}
         
         {/* Top Right Controls */}
         <div className="top-right-controls" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
@@ -258,59 +343,20 @@ export default function Home() {
           </div>
         </div>
 
-        <div className="hero-wrapper" style={{ marginTop: result ? '2vh' : '10vh', transition: 'margin 0.5s ease' }}>
-          <div className="hero-title-container">
-            <h1 className="hero-title">KING2MO</h1>
-            <span className="hero-badge">RAG</span>
-          </div>
-        </div>
-
-        <div className="search-container" style={{ zIndex: 10 }}>
-          <input
-            type="text"
-            className="main-search-input"
-            placeholder="Que souhaitez-vous savoir ?"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-          />
-          
-          <div className="mode-segmented-control">
-            <button className={`mode-btn ${mode === 'hybrid' ? 'active' : ''}`} onClick={() => setMode('hybrid')}>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              Hybride
-            </button>
-            <button className={`mode-btn ${mode === 'web' ? 'active' : ''}`} onClick={() => setMode('web')}>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              Web
-            </button>
-            <button className={`mode-btn ${mode === 'local' ? 'active' : ''}`} onClick={() => setMode('local')}>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-              Local
-            </button>
-          </div>
-          
-          {!result && !loading && (
-            <div className="quick-actions">
-              <div className="quick-action-chip" onClick={() => handleSearch("Explique le concept d'Agentic RAG")}>
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8.01" y2="16"></line><line x1="16" y1="16" x2="16.01" y2="16"></line></svg>
-                Explique l'Agentic RAG
-              </div>
-              <div className="quick-action-chip" onClick={() => handleSearch("Résume les informations clés du manuel")}>
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                Résume le manuel
-              </div>
-              <div className="quick-action-chip" onClick={() => handleSearch("Quelles sont les dernières actus IA ?")}>
-                <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" strokeWidth="2" fill="none"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                Actus IA Récentes
-              </div>
+        {(!result && !loading) && (
+          <div className="hero-wrapper" style={{ marginTop: '6vh' }}>
+            <div className="hero-title-container">
+              <h1 className="hero-title">KING2MO</h1>
+              <span className="hero-badge">RAG</span>
             </div>
-          )}
-        </div>
+            <p className="hero-subtitle" style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '0.8rem', fontSize: '0.9rem', letterSpacing: '1px', opacity: 0.7 }}>
+              Votre assistant de recherche intelligent
+            </p>
+          </div>
+        )}
 
-        {/* Upload Zone */}
-        {!result && (
-          <div className="upload-zone-wrapper" style={{ zIndex: 10, marginTop: '2rem' }}>
+        <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, marginTop: (!result && !loading) ? '1rem' : '0' }}>
+          <div className="search-input-wrapper">
             <input 
               type="file" 
               accept=".pdf" 
@@ -319,95 +365,190 @@ export default function Home() {
               style={{ display: 'none' }}
               id="file-upload"
             />
-            <label htmlFor="file-upload" className={`upload-dropzone ${uploading ? 'uploading' : ''}`}>
-              <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" strokeWidth="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-              <span>{uploading ? "Analyse et vectorisation..." : "Glissez ou cliquez pour ajouter un PDF à la base locale"}</span>
+            <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un PDF local">
+              {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={18} strokeWidth={2.5} />}
             </label>
-            {uploadMessage && (
-              <div className="upload-message">{uploadMessage}</div>
-            )}
+            <input
+              type="text"
+              className="main-search-input"
+              placeholder="Que souhaitez-vous savoir ?"
+              value={query}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
+            />
+            <button onClick={() => handleSearch(query)} className="search-submit-btn" disabled={loading} title="Lancer l'analyse">
+              <Search size={18} strokeWidth={2.5} />
+            </button>
           </div>
-        )}
-
-        <div className="run-btn-container" style={{ zIndex: 10 }}>
-          <button className="main-btn" onClick={() => handleSearch(query)} disabled={loading}>
-            {loading ? "ANALYSE EN COURS..." : "LANCER L'ANALYSE"}
-          </button>
+          {uploadMessage && (
+            <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace" }}>
+              {uploadMessage}
+            </div>
+          )}
+          
+          {!loading && !result && (
+            <>
+              <div className="mode-segmented-control">
+                <button className={`mode-btn ${mode === 'hybrid' ? 'active' : ''}`} onClick={() => setMode('hybrid')}>
+                  <Sparkles size={16} />
+                  Hybride
+                </button>
+                <button className={`mode-btn ${mode === 'web' ? 'active' : ''}`} onClick={() => setMode('web')}>
+                  <Globe size={16} />
+                  Web
+                </button>
+                <button className={`mode-btn ${mode === 'local' ? 'active' : ''}`} onClick={() => setMode('local')}>
+                  <Folder size={16} />
+                  Local
+                </button>
+              </div>
+              
+              <div className="welcome-grid">
+                <div className="welcome-card" onClick={() => handleSearch("Explique le concept d'Agentic RAG")}>
+                  <Cpu size={24} />
+                  <div className="welcome-card-title">Agentic RAG</div>
+                  <div className="welcome-card-subtitle">Comprendre l'architecture et ses avantages</div>
+                </div>
+                <div className="welcome-card" onClick={() => handleSearch("Quelles sont les dernières actus IA ?")}>
+                  <Globe size={24} />
+                  <div className="welcome-card-title">Actualités IA</div>
+                  <div className="welcome-card-subtitle">Les dernières avancées du secteur</div>
+                </div>
+                <div className="welcome-card" onClick={() => handleSearch("Résume les informations clés du manuel")}>
+                  <BookOpen size={24} />
+                  <div className="welcome-card-title">Résumé Local</div>
+                  <div className="welcome-card-subtitle">Synthèse de votre base documentaire</div>
+                </div>
+              </div>
+              
+              <div className="suggestions-container" style={{ marginTop: '4rem', textAlign: 'center' }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
+                  Recherches suggérées
+                </p>
+                <div className="suggestions-flex" style={{ display: 'flex', gap: '0.8rem', justifyContent: 'center', flexWrap: 'wrap', maxWidth: '800px', margin: '0 auto' }}>
+                  <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")}>
+                    <Sparkles size={14} /> Comment optimiser un système RAG ?
+                  </button>
+                  <button className="suggestion-pill" onClick={() => handleSearch("Tendances de l'IA générative en 2026")}>
+                    <Globe size={14} /> Tendances de l'IA générative en 2026
+                  </button>
+                  <button className="suggestion-pill" onClick={() => handleSearch("Exemple de Prompt Engineering avancé")}>
+                    <Book size={14} /> Exemple de Prompt Engineering avancé
+                  </button>
+                  <button className="suggestion-pill" onClick={() => handleSearch("Sécurité et confidentialité des LLMs")}>
+                    <Key size={14} /> Sécurité et confidentialité des LLMs
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
-        {/* STATUS LOADER */}
-        {status && (
-          <div style={{ marginTop: '1rem', zIndex: 10 }}>
-            <div className="status-pill">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="18" height="18"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg>
-              {status}
-            </div>
+        {!result && !loading && (
+          <div className="app-footer" style={{ position: 'absolute', bottom: '2rem', left: '0', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
+            Propulsé par Agentic RAG • v2.0
           </div>
         )}
 
-        {/* RESULTS CARD */}
-        {result && (
-          <div className="result-layout" style={{ zIndex: 10 }}>
-            <div className="result-main">
-              <div className="result-card" style={{ margin: 0 }}>
+        {(result || loading) && (
+          <div className="result-area" style={{ padding: '2rem 0' }}>
+            {result && (
+              <div className="result-card">
                 <div className="result-actions">
-                  {result.sources && result.sources.length > 0 && (
+                  {sources.length > 0 && (
                     <button className={`action-btn ${showSources ? 'active' : ''}`} onClick={() => setShowSources(!showSources)} title="Afficher/Cacher les sources">
-                      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                      Sources
+                      {showSources ? <EyeOff size={14}/> : <Eye size={14}/>} Sources
                     </button>
                   )}
-                  <button className="action-btn" onClick={copyToClipboard} title="Copier le texte">
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                    Copier
+                  <button className="action-btn" onClick={() => copyToClipboard(result)} title="Copier la réponse">
+                    <Copy size={14} /> Copier
                   </button>
-                  <button className="action-btn" onClick={downloadMarkdown} title="Télécharger en Markdown">
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Markdown
+                  <button className="action-btn" onClick={() => downloadMarkdown(result)} title="Télécharger en Markdown">
+                    <Download size={14} /> Markdown
                   </button>
                 </div>
-                <div className="result-body">{result.generation}</div>
-              </div>
 
-              <div className="metrics-row">
-                <div className="metric-widget">
-                  <div className="metric-val">{result.corrections}</div>
-                  <div className="metric-lbl">Cycles de Correction</div>
+                {metrics && (
+                  <div className="metrics-row">
+                    <div className="metric-badge">
+                      <Cpu size={14} /> Cycles de correction: {metrics.corrections || 0}
+                    </div>
+                  </div>
+                )}
+                
+                <div className="result-body">
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    components={{
+                      code({node, inline, className, children, ...props}: any) {
+                        const match = /language-(\w+)/.exec(className || '')
+                        return !inline && match ? (
+                          <SyntaxHighlighter
+                            style={vscDarkPlus as any}
+                            language={match[1]}
+                            PreTag="div"
+                            {...props}
+                          >
+                            {String(children).replace(/\n$/, '')}
+                          </SyntaxHighlighter>
+                        ) : (
+                          <code className={className} {...props}>
+                            {children}
+                          </code>
+                        )
+                      }
+                    }}
+                  >
+                    {result}
+                  </ReactMarkdown>
                 </div>
-                <div className="metric-widget">
-                  <div className="metric-val">{result.sources?.length || 0}</div>
-                  <div className="metric-lbl">Sources Validées</div>
-                </div>
-              </div>
-            </div>
 
-            {showSources && result.sources && result.sources.length > 0 && (
-              <div className="sources-sidebar result-card">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid var(--glass-border)', paddingBottom: '1rem' }}>
-                  <div className="sources-title" style={{ margin: 0, padding: 0 }}>SOURCES ({result.sources.length})</div>
-                  <button onClick={() => setShowSources(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
-                    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" strokeWidth="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                  </button>
-                </div>
-                <div className="sources-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  {result.sources.map((src: any, idx: number) => {
-                    const isUrl = src.source && src.source.startsWith("http");
-                    const sourceName = src.source ? (isUrl ? new URL(src.source).hostname.replace('www.','') : src.source) : "Source";
-                    return (
-                      <div key={idx} className="source-item" style={{ background: 'var(--input-bg)', padding: '1rem', borderRadius: '10px', border: '1px solid var(--glass-border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                          <span className="source-tag" style={{ margin: 0 }}>{isUrl ? "WEB" : "LOCAL"}</span>
-                          {isUrl ? <a href={src.source} target="_blank" rel="noreferrer" style={{ color: 'var(--text-primary)', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 600 }}>{sourceName}</a> : <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem', fontWeight: 600 }}>{sourceName}</span>}
+                {showSources && sources.length > 0 && (
+                  <div className="sources-horizontal-container">
+                    <h3 style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginBottom: '1rem', fontFamily: "'Outfit', sans-serif" }}>
+                      <Link2 size={16} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '0.5rem' }}/>
+                      Sources utilisées
+                    </h3>
+                    <div className="sources-horizontal-scroll">
+                      {sources.map((src, i) => (
+                        <div key={i} className="source-card-compact" onClick={() => src.metadata?.url && window.open(src.metadata.url, "_blank")}>
+                          <div className="source-card-header">
+                            <span className="source-card-number">{i + 1}</span>
+                            <span className="source-card-title">
+                              {src.metadata?.url ? <Globe size={12}/> : <Folder size={12}/>}
+                              {src.metadata?.source || "Document Local"}
+                            </span>
+                            {src.metadata?.url && <ExternalLink size={12} style={{ opacity: 0.5 }}/>}
+                          </div>
+                          <div className="source-card-snip">
+                            {src.page_content}
+                          </div>
                         </div>
-                        <div className="source-snip" style={{ marginTop: 0 }}>{src.content}</div>
-                      </div>
-                    );
-                  })}
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* SKELETON LOADER */}
+            {loading && (
+              <div className="skeleton-container">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
+                  <Loader2 size={16} className="animate-spin" />
+                  <span>{status || "ANALYSE EN COURS..."}</span>
                 </div>
+                <div className="skeleton-line title"></div>
+                <div className="skeleton-line full"></div>
+                <div className="skeleton-line full"></div>
+                <div className="skeleton-line medium"></div>
               </div>
             )}
           </div>
         )}
+
       </div>
     </div>
   );
