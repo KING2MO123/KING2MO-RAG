@@ -1,120 +1,67 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Key, Link2, BookOpen, Clock, Copy, Check, Download, Book, X, Cpu, Globe, Folder, Paperclip, ExternalLink, BarChart2, Image as ImageIcon } from "lucide-react";
+import { Search, Loader2, Sparkles, Sidebar as SidebarIcon, Key, Link2, BookOpen, Clock, Copy, Check, Download, Book, X, Cpu, Globe, Folder, Paperclip, ExternalLink, BarChart2, Image as ImageIcon, Square, Pencil } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, Legend, BarChart, Bar } from 'recharts';
 
-// URL du backend relative pour la version Standalone (FastAPI sert le Frontend).
-const API_BASE = "";
+import { apiGet, apiSend, API_BASE } from "@/lib/api";
+
+// (F-9) Version unique de l'application, source de vérité affichée en pied de page.
+const APP_VERSION = "3.2.0";
+
+import { I18N, t } from "@/lib/i18n";
+import NeuralNetwork from "@/components/NeuralNetwork";
+import SourceModal from "@/components/SourceModal";
+import SettingsModal from "@/components/SettingsModal";
+import Dashboard from "@/components/Dashboard";
+import ChatMessage from "@/components/ChatMessage";
+import Sidebar from "@/components/Sidebar";
+import SearchBar from "@/components/SearchBar";
+import TopBar from "@/components/TopBar";
+import { useChat } from "@/hooks/useChat";
 
 // Nombre max d'entrées conservées dans l'historique des coûts (m2).
 const MAX_COST_HISTORY = 100;
 
-// The NeuralNetwork component generates a constellation of nodes connecting to each other
-const NeuralNetwork = () => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let particles: { x: number, y: number, vx: number, vy: number, radius: number }[] = [];
-    const particleCount = 60;
-    const connectionDistance = 150;
-    const speed = 0.3;
-
-    const resize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener('resize', resize);
-    resize();
-
-    // Initialize
-    for (let i = 0; i < particleCount; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        vx: (Math.random() - 0.5) * speed,
-        vy: (Math.random() - 0.5) * speed,
-        radius: Math.random() * 1.5 + 0.5
-      });
-    }
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      // Update and draw particles
-      particles.forEach(p => {
-        p.x += p.vx;
-        p.y += p.vy;
-
-        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
-
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.6)'; // Emerald color, slightly accentuated
-        ctx.fill();
-      });
-
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < connectionDistance) {
-            ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            const opacity = 1 - (dist / connectionDistance);
-            ctx.strokeStyle = `rgba(16, 185, 129, ${opacity * 0.25})`;
-            ctx.lineWidth = 1;
-            ctx.stroke();
-          }
-        }
-      }
-
-      animationFrameId = requestAnimationFrame(draw);
-    };
-
-    draw();
-
-    return () => {
-      window.removeEventListener('resize', resize);
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2, pointerEvents: 'none' }} />;
-};
 
 export default function Home() {
   
   const [systemPassword, setSystemPassword] = useState("");
   const [query, setQuery] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<string[]>([]);
+
   
   // UI States
   const [theme, setTheme] = useState("dark");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mode, setMode] = useState("hybrid");
+  const [lang, setLang] = useState("fr");                       // (R-12) langue FR/EN
+  const [editingConvId, setEditingConvId] = useState<string | null>(null); // (R-3) renommage inline
+  const [editingTitle, setEditingTitle] = useState("");
+  const [needsApiKey, setNeedsApiKey] = useState(false);        // (R-8) bannière clé manquante
+  const [isDragging, setIsDragging] = useState(false);          // (R-9) glisser-déposer
 
   // Settings (clés API / fournisseur LLM)
   const [showSettings, setShowSettings] = useState(false);
   const [llmProvider, setLlmProvider] = useState("deepseek");
   const [llmKey, setLlmKey] = useState("");
   const [tavilyKey, setTavilyKey] = useState("");
+  const [hasTavilyKey, setHasTavilyKey] = useState(false);
+  const [hasLlmKey, setHasLlmKey] = useState(false);
+  const [llmBaseUrl, setLlmBaseUrl] = useState("");
+  const [llmModel, setLlmModel] = useState("");
+  const [customInPrice, setCustomInPrice] = useState("0");
+  const [customOutPrice, setCustomOutPrice] = useState("0");
+  const [qualityMode, setQualityMode] = useState(false);
+  const [scopedDocs, setScopedDocs] = useState(false); // (R-13) cloisonner les docs par conversation
+  const [pricing, setPricing] = useState<any>(null);   // table de tarifs (backend, configurable)
+
+  // Conversations sauvegardées (sur disque, via le backend)
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [currentConvId, setCurrentConvId] = useState<string | null>(null);
   const [settingsMsg, setSettingsMsg] = useState<string | null>(null);
   const [savingSettings, setSavingSettings] = useState(false);
 
@@ -128,7 +75,6 @@ export default function Home() {
 
 
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [messages, setMessages] = useState<any[]>([]);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -137,8 +83,7 @@ export default function Home() {
   const [isClearing, setIsClearing] = useState(false);
   
   // Cost State
-  const [totalCost, setTotalCost] = useState(0);
-  const [costHistory, setCostHistory] = useState<any[]>([]);
+
   const [showDashboard, setShowDashboard] = useState(false);
   const [dashboardOpacity, setDashboardOpacity] = useState(0.4);
 
@@ -147,6 +92,28 @@ export default function Home() {
   const [selectedHistory, setSelectedHistory] = useState<string[]>([]);
   const [isEditingDocs, setIsEditingDocs] = useState(false);
   const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
+  const [selectedSource, setSelectedSource] = useState<any>(null);
+
+  const {
+    messages, setMessages,
+    loading, setLoading,
+    abortController,
+    history, setHistory, saveToHistory,
+    costHistory, setCostHistory,
+    totalCost, setTotalCost,
+    handleSearch, regenerateLast, editUserMessage, handleStop
+  } = useChat({
+    systemPassword,
+    mode,
+    qualityMode,
+    scopedDocs,
+    currentConvId,
+    pricing,
+    selectedImage,
+    setSelectedImage,
+    query,
+    setQuery
+  });
 
   // Auto-scroll vers le dernier message (nouvelle question ou réponse reçue)
   useEffect(() => {
@@ -157,39 +124,76 @@ export default function Home() {
 
   // Load history & token on mount
   useEffect(() => {
-    const savedToken = localStorage.getItem("backend_token");
-    if (savedToken) setSystemPassword(savedToken);
-
-    try {
-      const savedHistory = localStorage.getItem("rag_history");
-      if (savedHistory) setHistory(JSON.parse(savedHistory));
-    } catch (e) {
-      console.warn("rag_history illisible, réinitialisé.", e);
-      localStorage.removeItem("rag_history");
-    }
-
-    try {
-      const savedCostHistory = localStorage.getItem("rag_cost_history");
-      if (savedCostHistory) {
-        const parsed = JSON.parse(savedCostHistory);
-        if (Array.isArray(parsed)) {
-          setCostHistory(parsed);
-          const tot = parsed.reduce((acc: number, item: any) => acc + (item?.cost || 0), 0);
-          setTotalCost(tot);
+    const savedToken = sessionStorage.getItem("backend_token");
+    if (savedToken) {
+      setSystemPassword(savedToken);
+    } else {
+      // (C-1) Sécurité maximale : on récupère le mot de passe injecté directement
+      // par la fenêtre native PyWebView, au lieu de faire une requête réseau locale.
+      const checkPywebview = setInterval(async () => {
+        // @ts-ignore
+        if (window.pywebview && window.pywebview.api && window.pywebview.api.get_token) {
+          clearInterval(checkPywebview);
+          try {
+            // @ts-ignore
+            const token = await window.pywebview.api.get_token();
+            if (token) {
+              setSystemPassword(token);
+              sessionStorage.setItem("backend_token", token);
+            }
+          } catch (e) {
+            console.error("Erreur API native", e);
+          }
         }
-      }
-    } catch (e) {
-      console.warn("rag_cost_history illisible, réinitialisé.", e);
-      localStorage.removeItem("rag_cost_history");
+      }, 100);
+      
+      // Stop chercher après 2s (ex: si exécuté dans un simple navigateur pour le débug)
+      setTimeout(() => clearInterval(checkPywebview), 2000);
     }
+
+
     
+    setQualityMode(localStorage.getItem("quality_mode") === "1");
+    setScopedDocs(localStorage.getItem("scoped_docs") === "1");
+    const savedLang = localStorage.getItem("ui_lang");
+    if (savedLang === "fr" || savedLang === "en") setLang(savedLang);
     fetchDocuments();
   }, []);
 
+  // (R-12) Persiste le choix de langue.
+  useEffect(() => { localStorage.setItem("ui_lang", lang); }, [lang]);
+
+
+
+  // Recharge la liste des documents quand le mot de passe est saisi/modifié
+  // (au montage, la requête part sans token et échoue en 401 -> liste vide).
+  useEffect(() => {
+    if (!systemPassword) return;
+    const timer = setTimeout(() => { fetchDocuments(); fetchConversations(); checkApiKey(); fetchPricing(); }, 500); // debounce pendant la frappe
+    return () => clearTimeout(timer);
+  }, [systemPassword]);
+
+  // (R-8) Détecte l'absence de clé API pour afficher une bannière d'aide.
+  const checkApiKey = async () => {
+    try {
+      const data = await apiGet("/api/settings", systemPassword);
+      const provider = data.llm_provider || "gemini";
+      const noKeyRequired = provider === "ollama" || provider === "custom";
+      setNeedsApiKey(!noKeyRequired && !data.llm_api_key_masked);
+    } catch { /* serveur indisponible */ }
+  };
+
+  // Table de tarifs configurable, récupérée du backend (avec repli codé en dur).
+  const fetchPricing = async () => {
+    try {
+      const data = await apiGet("/api/pricing", systemPassword);
+      if (data.pricing) setPricing(data.pricing);
+    } catch { /* repli sur les tarifs par défaut */ }
+  };
+
   const fetchDocuments = async () => {
     try {
-      const res = await fetch(`${API_BASE}/api/documents`, { headers: { "X-API-Token": systemPassword } });
-      const data = await res.json();
+      const data = await apiGet("/api/documents", systemPassword);
       if (data.status === "success") {
         setDocuments(data.documents);
       }
@@ -198,48 +202,150 @@ export default function Home() {
     }
   };
 
+  // --- Conversations (sauvegardées sur disque via le backend) ---
+  const fetchConversations = async () => {
+    try {
+      const data = await apiGet("/api/conversations", systemPassword);
+      if (data.status === "success") setConversations(data.conversations);
+    } catch { /* backend indisponible */ }
+  };
+
+  const loadConversation = async (id: string) => {
+    try {
+      const data = await apiGet(`/api/conversations/${id}`, systemPassword);
+      setMessages((data.conversation?.messages || []).filter((m: any) => !m.loading));
+      setCurrentConvId(id);
+    } catch { /* ignore */ }
+  };
+
+  const newConversation = () => {
+    setMessages([]);
+    setCurrentConvId(null);
+  };
+
+  const deleteConversation = async (id: string) => {
+    try {
+      await apiSend(`/api/conversations/${id}`, systemPassword, "DELETE");
+      if (id === currentConvId) newConversation();
+      fetchConversations();
+    } catch { /* ignore */ }
+  };
+
+  // (R-3) Renommage inline : window.prompt n'est pas fiable dans la fenêtre
+  // native (WebView2 le désactive parfois). On passe par un champ éditable.
+  const startRenaming = (id: string, currentTitle: string) => {
+    setEditingConvId(id);
+    setEditingTitle(currentTitle);
+  };
+
+  const commitRename = async () => {
+    const id = editingConvId;
+    const title = editingTitle.trim();
+    setEditingConvId(null);
+    if (!id || !title) return;
+    // Mise à jour optimiste de la liste locale.
+    setConversations(prev => prev.map((c: any) => c.id === id ? { ...c, title } : c));
+    try {
+      await apiSend(`/api/conversations/${id}`, systemPassword, "PATCH", { title: title.slice(0, 200) });
+      fetchConversations();
+    } catch { /* ignore */ }
+  };
+
+  // Sauvegarde automatique de la conversation courante (débouncée)
+  useEffect(() => {
+    if (messages.length === 0 || !systemPassword) return;
+    if (messages.some((m: any) => m.loading)) return; // on attend la fin de la génération
+    const timer = setTimeout(async () => {
+      try {
+        // (R-3) On préserve un titre renommé : on ne le dérive du premier
+        // message QUE si la conversation n'a pas déjà un titre personnalisé.
+        const existing = conversations.find((c: any) => c.id === currentConvId);
+        const firstUser = messages.find((m: any) => m.role === "user");
+        const title = (existing?.title || firstUser?.content || "Conversation").slice(0, 200);
+        const res = await apiSend("/api/conversations", systemPassword, "POST", { id: currentConvId, title, messages: messages.slice(-200) });
+        const data = await res.json();
+        if (data.id && data.id !== currentConvId) setCurrentConvId(data.id);
+        fetchConversations();
+      } catch { /* ignore */ }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [messages, systemPassword]);
+
   const openSettings = async () => {
     setShowSettings(true);
     setLlmKey(""); setTavilyKey("");
     try {
-      const res = await fetch(`${API_BASE}/api/settings`, { headers: { "X-API-Token": systemPassword } });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.llm_provider) setLlmProvider(data.llm_provider);
-        setSettingsMsg(data.llm_api_key_masked ? `Clé LLM actuelle : ${data.llm_api_key_masked}` : "Aucune clé LLM configurée.");
-      } else {
+      const saved = JSON.parse(localStorage.getItem("custom_pricing") || "{}");
+      if (saved.in != null) setCustomInPrice(String(saved.in));
+      if (saved.out != null) setCustomOutPrice(String(saved.out));
+    } catch { /* tarifs custom illisibles, valeurs par défaut */ }
+    try {
+      const data = await apiGet("/api/settings", systemPassword);
+      if (data.llm_provider) setLlmProvider(data.llm_provider);
+      if (data.llm_base_url) setLlmBaseUrl(data.llm_base_url);
+      setLlmModel(data.llm_model || "");
+      setHasTavilyKey(!!data.tavily_api_key_masked);
+      setHasLlmKey(!!data.llm_api_key_masked);
+      setSettingsMsg(data.llm_api_key_masked ? `Clé LLM actuelle : ${data.llm_api_key_masked}` : "Aucune clé LLM configurée.");
+    } catch (e: any) {
+      if (e.message && (e.message.includes("401") || e.message.includes("403"))) {
         setSettingsMsg("⚠️ Entre d'abord le mot de passe du serveur.");
+      } else {
+        setSettingsMsg("⚠️ Serveur injoignable.");
       }
-    } catch {
-      setSettingsMsg("⚠️ Serveur injoignable.");
     }
   };
 
   const saveSettings = async () => {
     setSavingSettings(true);
     try {
-      const res = await fetch(`${API_BASE}/api/settings`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-API-Token": systemPassword },
-        body: JSON.stringify({
-          llm_provider: llmProvider,
-          gemini_api_key: llmKey || null,
-          tavily_api_key: tavilyKey || null,
-        }),
+      const res = await apiSend("/api/settings", systemPassword, "POST", {
+        llm_provider: llmProvider,
+        gemini_api_key: llmKey || null,
+        tavily_api_key: tavilyKey || null,
+        llm_base_url: llmProvider === "custom" ? (llmBaseUrl || null) : null,
+        llm_model: llmProvider === "deepseek" ? "" : (llmModel || ""),
       });
+      // Tarifs du modèle personnalisé (pour l'affichage des coûts, côté navigateur)
+      localStorage.setItem("custom_pricing", JSON.stringify({
+        in: parseFloat(customInPrice) || 0,
+        out: parseFloat(customOutPrice) || 0,
+      }));
       const data = await res.json();
       setSettingsMsg(data.message || (res.ok ? "Enregistré ✓" : "Erreur."));
-      if (res.ok && data.status === "success") { setLlmKey(""); setTavilyKey(""); }
+      if (res.ok && data.status === "success") { 
+        setLlmKey(""); 
+        setTavilyKey(""); 
+        checkApiKey(); 
+        const freshData = await apiGet("/api/settings", systemPassword);
+        setHasTavilyKey(!!freshData.tavily_api_key_masked);
+        setHasLlmKey(!!freshData.llm_api_key_masked);
+      }
     } catch {
       setSettingsMsg("⚠️ Serveur injoignable.");
     }
     setSavingSettings(false);
   };
 
+  const deleteKey = async (type: "llm" | "tavily") => {
+    try {
+      const res = await apiSend("/api/settings", systemPassword, "POST", {
+        [type === "llm" ? "clear_llm_key" : "clear_tavily_key"]: true
+      });
+      if (res.ok) {
+        checkApiKey();
+        const data = await apiGet("/api/settings", systemPassword);
+        setHasTavilyKey(!!data.tavily_api_key_masked);
+        setHasLlmKey(!!data.llm_api_key_masked);
+        setSettingsMsg(data.llm_api_key_masked ? `Clé LLM actuelle : ${data.llm_api_key_masked}` : "Aucune clé LLM configurée.");
+      }
+    } catch {}
+  };
+
   const clearDocuments = async () => {
     setIsClearing(true);
     try {
-      await fetch(`${API_BASE}/api/documents`, { method: "DELETE", headers: { "X-API-Token": systemPassword } });
+      await apiSend("/api/documents", systemPassword, "DELETE");
       setDocuments([]);
     } catch (e) {
       console.error(e);
@@ -249,7 +355,7 @@ export default function Home() {
 
   const deleteDocument = async (filename: string) => {
     try {
-      await fetch(`${API_BASE}/api/documents/${encodeURIComponent(filename)}`, { method: "DELETE", headers: { "X-API-Token": systemPassword } });
+      await apiSend(`/api/documents/${encodeURIComponent(filename)}`, systemPassword, "DELETE");
       fetchDocuments();
     } catch (e) {
       console.error(e);
@@ -260,7 +366,7 @@ export default function Home() {
     setIsClearing(true);
     try {
       await Promise.all(selectedDocs.map(doc =>
-        fetch(`${API_BASE}/api/documents/${encodeURIComponent(doc)}`, { method: "DELETE", headers: { "X-API-Token": systemPassword } })
+        apiSend(`/api/documents/${encodeURIComponent(doc)}`, systemPassword, "DELETE")
       ));
       await fetchDocuments();
       setSelectedDocs([]);
@@ -301,10 +407,12 @@ export default function Home() {
 
   const exportChatToMarkdown = () => {
     if (messages.length === 0) return;
-    let md = "# Export de Conversation (KING2MO)\\n\\n";
+    // Bug corrigé : "\\n" produisait des antislash-n littéraux au lieu de
+    // vrais retours à la ligne — l'export tenait sur une seule ligne.
+    let md = "# Export de Conversation (KING2MO)\n\n";
     messages.forEach(msg => {
-      md += `**${msg.role === 'user' ? 'Vous' : 'IA'}** :\\n`;
-      md += `${msg.content}\\n\\n`;
+      md += `**${msg.role === 'user' ? 'Vous' : 'IA'}** :\n`;
+      md += `${msg.content}\n\n`;
     });
     const blob = new Blob([md], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -330,187 +438,29 @@ export default function Home() {
 
   const toggleTheme = () => setTheme(prev => prev === "dark" ? "light" : "dark");
 
-  const saveToHistory = (q: string) => {
-    if (!q) return;
-    const newHistory = [q, ...history.filter(h => h !== q)].slice(0, 5);
-    setHistory(newHistory);
-    localStorage.setItem("rag_history", JSON.stringify(newHistory));
-  };
-
-  const handleSearch = async (searchQuery: string = query) => {
-    const newQuery = searchQuery.trim();
-    if (!newQuery || loading) return;
-
-    setQuery("");
-    saveToHistory(newQuery);
-
-    // 1. Add User Message
-    const userMsgId = Date.now().toString();
-    const userMsg = { id: userMsgId, role: "user", content: newQuery };
-    
-    // 2. Build conversational history from current messages
-    // We only take the text content, and ignore the initial empty assistant loading message.
-    const chatHistory = messages
-      .filter(m => !m.loading && m.content)
-      .map(m => ({ role: m.role, content: m.content }));
-      
-    // 3. Add Assistant Loading Message
-    const assistantMsgId = (Date.now() + 1).toString();
-    const assistantMsg = { 
-      id: assistantMsgId, 
-      role: "assistant", 
-      content: "", 
-      sources: [], 
-      metrics: null, 
-      loading: true, 
-      status: "Initialisation..." 
-    };
-
-    setMessages(prev => [...prev, userMsg, assistantMsg]);
-    setLoading(true);
-
-    try {
-      const response = await fetch(`${API_BASE}/api/chat`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "X-API-Token": systemPassword
-        },
-        body: JSON.stringify({
-          query: newQuery,
-          mode,
-          history: chatHistory,
-          image_base64: selectedImage
-        }),
-      });
-
-      setSelectedImage(null);
-
-      // C2 : on vérifie le statut HTTP. Une 422 (clé manquante) ou une 5xx
-      // renvoie du JSON, pas du SSE : sans ce garde, le flux ne contiendrait
-      // aucun événement et le spinner tournerait indéfiniment.
-      if (!response.ok) {
-        let detail = `Erreur serveur (HTTP ${response.status}).`;
-        try {
-          const errBody = await response.json();
-          if (errBody?.detail) {
-            detail = Array.isArray(errBody.detail)
-              ? errBody.detail.map((d: any) => d.msg || JSON.stringify(d)).join(" ; ")
-              : String(errBody.detail);
-          }
-        } catch { /* corps non-JSON, on garde le message par défaut */ }
-        throw new Error(detail);
-      }
-
-      if (!response.body) throw new Error("ReadableStream not yet supported in this browser.");
-
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder("utf-8");
-      let done = false;
-      let buffer = "";
-
-      while (!done) {
-        const { value, done: readerDone } = await reader.read();
-        done = readerDone;
-        if (value) {
-          // Buffer : un événement SSE peut être coupé entre deux chunks réseau
-          buffer += decoder.decode(value, { stream: true });
-          const events = buffer.split("\n\n");
-          buffer = events.pop() || "";
-          for (const line of events) {
-            if (line.startsWith("data: ")) {
-              try {
-                const data = JSON.parse(line.replace("data: ", ""));
-                if (data.type === "status") {
-                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { ...m, status: `TRAITEMENT : ${data.node.toUpperCase()}` } : m));
-                } else if (data.type === "result") {
-                  const inTok = data.input_tokens || 0;
-                  const outTok = data.output_tokens || 0;
-                  const sCount = data.search_count || 0;
-                  
-                  let usedModel = "Serveur IA";
-                  let inPrice = 0.075;
-                  let outPrice = 0.30;
-                  // (Le modèle exact est connu du backend)
-                  
-                  const msgCost = (inTok / 1000000) * inPrice + (outTok / 1000000) * outPrice + sCount * 0.005;
-                  
-                  const now = new Date();
-                  const detailedTime = `${now.toLocaleDateString('fr-FR')} ${now.toLocaleTimeString('fr-FR')}.${now.getMilliseconds().toString().padStart(3, '0')}`;
-
-                  const newHistoryItem = {
-                    time: detailedTime,
-                    cost: msgCost,
-                    inTokens: inTok,
-                    outTokens: outTok,
-                    searchCount: sCount,
-                    model: usedModel
-                  };
-                  setCostHistory(prev => {
-                    // m2 : on borne l'historique pour ne pas saturer le localStorage.
-                    const updated = [...prev, newHistoryItem].slice(-MAX_COST_HISTORY);
-                    localStorage.setItem("rag_cost_history", JSON.stringify(updated));
-                    return updated;
-                  });
-                  setTotalCost(prev => prev + msgCost);
-                  
-                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
-                    ...m, 
-                    content: data.generation,
-                    sources: data.sources || [],
-                    metrics: { 
-                        corrections: data.corrections, 
-                        duration: data.duration, 
-                        webUsed: data.web_used,
-                        cost: msgCost,
-                        inTokens: inTok,
-                        outTokens: outTok
-                    },
-                    loading: false, 
-                    status: null 
-                  } : m));
-                  setLoading(false);
-                } else if (data.type === "error") {
-                  setMessages(prev => prev.map(m => m.id === assistantMsgId ? { 
-                    ...m, 
-                    content: `❌ Erreur : ${data.message}`, 
-                    loading: false, 
-                    status: null 
-                  } : m));
-                  setLoading(false);
-                }
-              } catch (e) {
-                console.debug("Erreur de parsing SSE :", e, line);
-              }
-            }
-          }
-        }
-      }
-    } catch (error: any) {
-      // m4 : message d'erreur plus précis (statut/détail du backend).
-      const msg = error?.message || "Erreur de connexion au serveur Backend.";
-      setMessages(prev => prev.map(m => m.id === assistantMsgId ? {
-        ...m,
-        content: `❌ ${msg}`,
-        loading: false,
-        status: null
-      } : m));
-    } finally {
-      // C2 : garantit l'arrêt du spinner même si le flux se termine sans
-      // événement "result"/"error" (réponse inattendue, connexion coupée…).
-      setLoading(false);
-      setMessages(prev => prev.map(m =>
-        (m.id === assistantMsgId && m.loading)
-          ? { ...m, loading: false, status: null, content: m.content || "❌ Aucune réponse reçue du serveur." }
-          : m
-      ));
-    }
-  };
-
   const handleReset = () => {
     setMessages([]);
     setQuery("");
     setLoading(false);
+    setCurrentConvId(null); // clic sur le logo = nouvelle conversation
+  };
+
+  // (R-9) Glisser-déposer d'un fichier sur la fenêtre.
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isDragging) setIsDragging(true);
+  };
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    // On ne quitte l'état que si on sort réellement de la fenêtre.
+    if (e.currentTarget === e.target) setIsDragging(false);
+  };
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
+      uploadFile(e.dataTransfer.files[0]);
+    }
   };
 
   const copyToClipboard = (text: string, msgId: string) => {
@@ -534,24 +484,31 @@ export default function Home() {
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    if (file.type !== "application/pdf") {
-        setUploadMessage("❌ Seuls les PDF sont acceptés.");
+    await uploadFile(e.target.files[0]);
+    // Clear input pour permettre le ré-upload du même fichier
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // (R-9) Cœur de l'upload, réutilisable par le clic ET le glisser-déposer.
+  const uploadFile = async (file: File) => {
+    const ext = file.name.split('.').pop()?.toLowerCase();
+    if (!["pdf", "txt", "docx", "xlsx", "pptx"].includes(ext || "")) {
+        setUploadMessage("❌ Format non supporté. (pdf, txt, docx, xlsx, pptx uniquement)");
+        setTimeout(() => setUploadMessage(null), 5000);
         return;
     }
-    
+
     setUploading(true);
     setUploadMessage("Upload en cours...");
     
     const formData = new FormData();
     formData.append("file", file);
+    // (R-13) Si le cloisonnement est actif et qu'une conversation est ouverte,
+    // le document est réservé à cette conversation ; sinon il est "global".
+    formData.append("scope", (scopedDocs && currentConvId) ? currentConvId : "global");
 
     try {
-      const response = await fetch(`${API_BASE}/api/upload`, {
-        method: "POST",
-        headers: { "X-API-Token": systemPassword },
-        body: formData,
-      });
+      const response = await apiSend("/api/upload", systemPassword, "POST", formData, true);
       const data = await response.json();
       if (data.status === "success") {
         setUploadMessage(`✅ ${data.message}`);
@@ -580,349 +537,118 @@ export default function Home() {
   const bgRGB = theme === 'dark' ? '5, 5, 8' : '255, 255, 255';
 
   return (
-    <div className="app-container">
+    <div className="app-container" onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       {/* Authentic Matrix Glow */}
       <div className="aurora-bg"></div>
       <div className={`search-dim-overlay ${isSearchFocused ? 'active' : ''}`}></div>
 
-      {/* SIDEBAR */}
-      <div className={`sidebar ${!sidebarOpen ? "collapsed" : ""}`}>
-        <div className="sidebar-toggle-btn" onClick={() => setSidebarOpen(!sidebarOpen)}>
-          <SidebarIcon size={20} />
-        </div>
-
-        <div className="sb-brand" onClick={handleReset} style={{ cursor: 'pointer' }}>KING2MO</div>
-        
-        <div>
-          <div className="sb-section-title">ACCÈS SYSTÈME</div>
-          <div className="input-group">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <label>Mot de passe</label>
-              <span style={{ fontSize: '0.65rem', color: 'var(--accent-color)', opacity: systemPassword ? 1 : 0, transition: 'opacity 0.3s' }}>✓ Sauvegardé</span>
-            </div>
-            <div style={{ position: 'relative' }}>
-              <input 
-                type="password" 
-                className="sidebar-input" 
-                placeholder="Mot de passe du serveur..." 
-                value={systemPassword} 
-                onChange={(e) => { setSystemPassword(e.target.value); localStorage.setItem('backend_token', e.target.value); }} 
-              />
-            </div>
-          </div>
-          <button
-            onClick={openSettings}
-            style={{ marginTop: '0.6rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', padding: '0.45rem', fontSize: '0.75rem', background: 'var(--glass-bg)', color: 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '6px', cursor: 'pointer' }}
-          >
-            <Key size={13} /> Clés API &amp; Fournisseur
-          </button>
-        </div>
-
-        {history.length > 0 && (
-          <div className="history-section">
-            <div className="sb-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span>HISTORIQUE RÉCENT</span>
-              <button 
-                onClick={() => setIsEditingHistory(!isEditingHistory)} 
-                style={{ background: 'none', border: 'none', color: isEditingHistory ? 'var(--accent-color)' : 'var(--text-secondary)', fontSize: '0.65rem', cursor: 'pointer', opacity: 0.8 }}
-              >
-                {isEditingHistory ? 'TERMINER' : 'GÉRER'}
-              </button>
-            </div>
-            <div className="history-list">
-              {history.map((h, i) => (
-                <div key={i} className="history-item" onClick={() => isEditingHistory ? toggleHistorySelection(h) : handleSearch(h)} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {isEditingHistory ? (
-                    <input type="checkbox" checked={selectedHistory.includes(h)} readOnly style={{ cursor: 'pointer' }} />
-                  ) : (
-                    <Clock size={14} />
-                  )}
-                  <span>{h.length > 25 ? h.substring(0, 25) + '...' : h}</span>
-                </div>
-              ))}
-            </div>
-            {isEditingHistory && (
-              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-                <button 
-                  onClick={deleteSelectedHistory}
-                  disabled={selectedHistory.length === 0}
-                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: selectedHistory.length > 0 ? '#ef4444' : 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: selectedHistory.length > 0 ? 'pointer' : 'not-allowed' }}
-                >
-                  Supprimer
-                </button>
-                <button 
-                  onClick={clearAllHistory}
-                  style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: '#ef4444', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }}
-                >
-                  Tout vider
-                </button>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* On a retiré le widget de coûts de session d'ici pour le mettre en haut à droite */}
-
-        <div className="history-section" style={{ marginTop: '2rem' }}>
-          <div className="sb-section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span>BASE DE CONNAISSANCES</span>
-            {documents.length > 0 && (
-              <button 
-                onClick={() => setIsEditingDocs(!isEditingDocs)} 
-                disabled={isClearing}
-                style={{ background: 'none', border: 'none', color: isEditingDocs ? 'var(--accent-color)' : 'var(--text-secondary)', fontSize: '0.65rem', cursor: 'pointer', opacity: 0.8 }}
-              >
-                {isEditingDocs ? 'TERMINER' : 'GÉRER'}
-              </button>
-            )}
-          </div>
-          <div className="history-list">
-            {documents.length === 0 ? (
-              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textAlign: 'center', padding: '1rem 0' }}>Aucun document local.</div>
-            ) : (
-              documents.map((doc, i) => (
-                <div key={i} className="history-item" onClick={() => isEditingDocs ? toggleDocSelection(doc) : null} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: isEditingDocs ? 'pointer' : 'default' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
-                    {isEditingDocs ? (
-                      <input type="checkbox" checked={selectedDocs.includes(doc)} readOnly style={{ cursor: 'pointer' }} />
-                    ) : (
-                      <Book size={14} style={{ flexShrink: 0 }} />
-                    )}
-                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: '0.8rem' }}>{doc}</span>
-                  </div>
-                  {!isEditingDocs && (
-                    <button 
-                      aria-label="Supprimer le document"
-                      onClick={(e) => { e.stopPropagation(); deleteDocument(doc); }} 
-                      style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', padding: '4px' }}
-                      title="Supprimer"
-                    >
-                      <X size={14} />
-                    </button>
-                  )}
-                </div>
-              ))
-            )}
-          </div>
-          {isEditingDocs && documents.length > 0 && (
-            <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.5rem' }}>
-              <button 
-                onClick={deleteSelectedDocs}
-                disabled={selectedDocs.length === 0 || isClearing}
-                style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: selectedDocs.length > 0 ? '#ef4444' : 'var(--text-secondary)', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: selectedDocs.length > 0 ? 'pointer' : 'not-allowed' }}
-              >
-                {isClearing ? 'En cours...' : 'Supprimer'}
-              </button>
-              <button 
-                onClick={clearDocuments}
-                disabled={isClearing}
-                style={{ flex: 1, padding: '0.4rem', fontSize: '0.7rem', background: 'var(--glass-bg)', color: '#ef4444', border: '1px solid var(--glass-border)', borderRadius: '4px', cursor: 'pointer' }}
-              >
-                Tout vider
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* SETTINGS MODAL */}
-      {showSettings && (
-        <div onClick={() => setShowSettings(false)} style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(0,0,0,0.55)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '440px', background: `rgba(${bgRGB}, 0.98)`, border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '1.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.6)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Key size={18} /> Paramètres API</h2>
-              <button onClick={() => setShowSettings(false)} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}><X size={18} /></button>
-            </div>
-
-            <div className="input-group" style={{ marginBottom: '1rem' }}>
-              <label>Fournisseur IA</label>
-              <select
-                className="sidebar-input"
-                value={llmProvider}
-                onChange={(e) => setLlmProvider(e.target.value)}
-                style={{ width: '100%' }}
-              >
-                <option value="gemini">Google Gemini</option>
-                <option value="deepseek">DeepSeek</option>
-              </select>
-            </div>
-
-            <div className="input-group" style={{ marginBottom: '1rem' }}>
-              <label>Clé API du fournisseur</label>
-              <input
-                type="password"
-                className="sidebar-input"
-                placeholder="Colle ta clé ici (laisser vide = inchangée)"
-                value={llmKey}
-                onChange={(e) => setLlmKey(e.target.value)}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            <div className="input-group" style={{ marginBottom: '1.25rem' }}>
-              <label>Clé Tavily (recherche web, optionnelle)</label>
-              <input
-                type="password"
-                className="sidebar-input"
-                placeholder="tvly-... (laisser vide = inchangée)"
-                value={tavilyKey}
-                onChange={(e) => setTavilyKey(e.target.value)}
-                style={{ width: '100%' }}
-              />
-            </div>
-
-            {settingsMsg && (
-              <div style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>{settingsMsg}</div>
-            )}
-
-            <button
-              onClick={saveSettings}
-              disabled={savingSettings}
-              style={{ width: '100%', padding: '0.6rem', background: 'var(--accent-color)', color: '#000', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: savingSettings ? 'wait' : 'pointer' }}
-            >
-              {savingSettings ? 'Enregistrement...' : 'Enregistrer'}
-            </button>
-          </div>
+      {/* (R-9) Superposition de glisser-déposer */}
+      {isDragging && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 5000, background: 'rgba(5,5,8,0.75)', backdropFilter: 'blur(6px)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', border: '3px dashed var(--accent-color)', pointerEvents: 'none' }}>
+          <Paperclip size={48} style={{ color: 'var(--accent-color)', marginBottom: '1rem' }} />
+          <div style={{ fontSize: '1.1rem', color: 'var(--text-primary)', fontFamily: "'Outfit', sans-serif" }}>{t(lang, 'drop_here')}</div>
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.5rem' }}>PDF · TXT · DOCX · XLSX · PPTX</div>
         </div>
       )}
 
+      {/* SIDEBAR */}
+      <Sidebar
+        lang={lang}
+        sidebarOpen={sidebarOpen}
+        setSidebarOpen={setSidebarOpen}
+        conversations={conversations}
+        currentConvId={currentConvId}
+        editingConvId={editingConvId}
+        editingTitle={editingTitle}
+        setEditingTitle={setEditingTitle}
+        setEditingConvId={setEditingConvId}
+        onNewConversation={newConversation}
+        onLoadConversation={loadConversation}
+        onStartRenaming={startRenaming}
+        onCommitRename={commitRename}
+        onDeleteConversation={deleteConversation}
+        onReset={handleReset}
+        onOpenSettings={openSettings}
+        history={history}
+        isEditingHistory={isEditingHistory}
+        setIsEditingHistory={setIsEditingHistory}
+        selectedHistory={selectedHistory}
+        onToggleHistorySelection={toggleHistorySelection}
+        onSearch={handleSearch}
+        onDeleteSelectedHistory={deleteSelectedHistory}
+        onClearAllHistory={clearAllHistory}
+        documents={documents}
+        isEditingDocs={isEditingDocs}
+        setIsEditingDocs={setIsEditingDocs}
+        selectedDocs={selectedDocs}
+        isClearing={isClearing}
+        onToggleDocSelection={toggleDocSelection}
+        onDeleteDocument={deleteDocument}
+        onDeleteSelectedDocs={deleteSelectedDocs}
+        onClearDocuments={clearDocuments}
+      />
+
+      {/* SETTINGS MODAL */}
+      <SettingsModal 
+        showSettings={showSettings}
+        setShowSettings={setShowSettings}
+        lang={lang}
+        bgRGB={bgRGB}
+        llmProvider={llmProvider}
+        setLlmProvider={setLlmProvider}
+        llmBaseUrl={llmBaseUrl}
+        setLlmBaseUrl={setLlmBaseUrl}
+        llmModel={llmModel}
+        setLlmModel={setLlmModel}
+        customInPrice={customInPrice}
+        setCustomInPrice={setCustomInPrice}
+        customOutPrice={customOutPrice}
+        setCustomOutPrice={setCustomOutPrice}
+        qualityMode={qualityMode}
+        setQualityMode={setQualityMode}
+        scopedDocs={scopedDocs}
+        setScopedDocs={setScopedDocs}
+        llmKey={llmKey}
+        setLlmKey={setLlmKey}
+        systemPassword={systemPassword}
+        setSystemPassword={setSystemPassword}
+        tavilyKey={tavilyKey}
+        setTavilyKey={setTavilyKey}
+        hasTavilyKey={hasTavilyKey}
+        hasLlmKey={hasLlmKey}
+        settingsMsg={settingsMsg}
+        saveSettings={saveSettings}
+        savingSettings={savingSettings}
+        deleteKey={deleteKey}
+      />
+
       {/* MAIN CONTENT */}
       <div className="main-content" style={{ paddingLeft: sidebarOpen ? "2rem" : "5rem", display: 'flex', flexDirection: 'column' }}>
-        
-        {/* DASHBOARD OVERLAY */}
-        {showDashboard && (
-          <div onClick={() => setShowDashboard(false)} style={{ position: 'absolute', inset: 0, left: sidebarOpen ? "300px" : "80px", zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div onClick={(e) => e.stopPropagation()} style={{ width: '90%', maxWidth: '900px', maxHeight: '90%', background: `rgba(${bgRGB}, ${dashboardOpacity})`, backdropFilter: `blur(${dashboardOpacity * 40}px)`, WebkitBackdropFilter: `blur(${dashboardOpacity * 40}px)`, border: '1px solid var(--glass-border)', borderRadius: '16px', padding: '2rem', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
-              <h1 style={{ fontSize: '1.5rem', fontWeight: 600, fontFamily: "'Outfit', sans-serif", margin: 0, flex: '1 1 auto', minWidth: '250px' }}><BarChart2 style={{ display: 'inline', marginRight: '0.5rem', verticalAlign: 'text-bottom' }} /> Tableau de Bord API</h1>
-              
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap', marginLeft: 'auto' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'var(--glass-bg)', padding: '0.4rem 0.8rem', borderRadius: '4px', border: '1px solid var(--glass-border)' }}>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Opacité</span>
-                  <input 
-                    type="range" 
-                    min="0" 
-                    max="0.95" 
-                    step="0.05" 
-                    value={dashboardOpacity} 
-                    onChange={(e) => setDashboardOpacity(Number(e.target.value))}
-                    style={{ width: '80px', accentColor: 'var(--text-primary)', cursor: 'pointer' }}
-                  />
-                </div>
-                <button aria-label="Fermer le tableau de bord" onClick={() => setShowDashboard(false)} style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-primary)', padding: '0.5rem 1rem', borderRadius: '4px', cursor: 'pointer', display: 'flex', gap: '0.5rem', alignItems: 'center', transition: 'all 0.2s' }}>
-                  <X size={16} /> Fermer
-                </button>
-              </div>
-            </div>
-            
-            <div style={{ display: 'flex', gap: '3rem', marginBottom: '4rem', paddingBottom: '2rem', borderBottom: '1px solid var(--glass-border)' }}>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Total expenses</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
-                  ${totalCost.toFixed(5)} <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>USD</span>
-                </div>
-              </div>
-              <div>
-                <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Total requests</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 300, color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>
-                  {costHistory.length}
-                </div>
-              </div>
-            </div>
 
-            <div style={{ marginBottom: '5rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1.5rem' }}>
-                <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 600, margin: '0 0 0.5rem 0', color: 'var(--text-primary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Global usage</h3>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontFamily: 'system-ui, -apple-system, sans-serif' }}>Expenses <span style={{ color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>${totalCost.toFixed(5)}</span></div>
-                </div>
-              </div>
-              
-              {costHistory.length > 0 ? (
-                <div style={{ height: '180px', width: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={costHistory} margin={{ top: 10, right: 0, left: -20, bottom: 60 }} barCategoryGap="5%">
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
-                      <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
-                      <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v.toFixed(4)}`} />
-                      <Tooltip cursor={{ fill: 'var(--glass-border)', opacity: 0.2 }} contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }} itemStyle={{ color: '#fbbf24', fontWeight: 'bold' }} />
-                      <Bar dataKey="cost" name="Cost" fill="#fbbf24" radius={[2, 2, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', height: '180px', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)' }}>Aucune donnée disponible. Posez une question pour commencer.</div>
-              )}
-            </div>
-
-            {(() => {
-              const modelsData: Record<string, { totalCost: number, totalInTokens: number, totalOutTokens: number, history: any[] }> = {};
-              costHistory.forEach(curr => {
-                const mod = curr.model || "Serveur IA";
-                if (!modelsData[mod]) modelsData[mod] = { totalCost: 0, totalInTokens: 0, totalOutTokens: 0, history: [] };
-                modelsData[mod].totalCost += curr.cost;
-                modelsData[mod].totalInTokens += curr.inTokens;
-                modelsData[mod].totalOutTokens += curr.outTokens;
-                modelsData[mod].history.push(curr);
-              });
-              
-              return Object.entries(modelsData).map(([modelName, data]) => (
-                <div key={modelName} style={{ marginBottom: '3rem' }}>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 600, fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace', marginBottom: '2rem', color: 'var(--text-primary)', borderBottom: '1px solid var(--glass-border)', paddingBottom: '0.5rem' }}>{modelName.toLowerCase()}-model</h4>
-                  
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
-                    
-                    {/* API Requests / Cost */}
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>API expenses</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>${data.totalCost.toFixed(5)}</span>
-                      </div>
-                      <div style={{ height: '140px', width: '100%' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={data.history} margin={{ top: 10, right: 0, left: -20, bottom: 20 }}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
-                            <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
-                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v.toFixed(3)}`} />
-                            <Tooltip 
-                              cursor={{ stroke: 'var(--text-secondary)', strokeWidth: 1, strokeDasharray: '4 4' }} 
-                              contentStyle={{ background: '#202022', border: '1px solid #333', borderRadius: '8px', color: '#fff' }} 
-                              itemStyle={{ color: '#fff' }} 
-                              labelStyle={{ color: '#aaa', marginBottom: '4px' }} 
-                            />
-                            <Area type="monotone" dataKey="cost" name="API requests" stroke={modelName === "DeepSeek" ? "#5c7cfa" : "#20c997"} strokeWidth={2} fill={modelName === "DeepSeek" ? "#5c7cfa" : "#20c997"} fillOpacity={0.7} />
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                    {/* Tokens */}
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1.5rem', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>Tokens (In/Out)</span>
-                        <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace' }}>{(data.totalInTokens + data.totalOutTokens).toLocaleString()}</span>
-                      </div>
-                      <div style={{ height: '140px', width: '100%' }}>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={data.history} margin={{ top: 10, right: 0, left: -20, bottom: 20 }} barCategoryGap="5%">
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--glass-border)" opacity={0.3} />
-                            <XAxis dataKey="time" stroke="var(--text-secondary)" fontSize={11} tickLine={false} axisLine={{ stroke: 'var(--glass-border)' }} tickFormatter={(t) => { const m = t.match(/(\d{1,2}:\d{2})/); return m ? m[1] : t; }} />
-                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => v >= 1000 ? `${(v/1000).toFixed(1)}k` : v.toString()} />
-                            <Tooltip cursor={{ fill: 'var(--glass-border)', opacity: 0.2 }} contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--glass-border)', borderRadius: '8px' }} />
-                            <Bar dataKey="inTokens" stackId="t" name="In Tokens" fill={modelName === "DeepSeek" ? "#93c5fd" : "#6ee7b7"} radius={[0, 0, 0, 0]} />
-                            <Bar dataKey="outTokens" stackId="t" name="Out Tokens" fill={modelName === "DeepSeek" ? "#3b82f6" : "#10b981"} radius={[2, 2, 0, 0]} />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              ));
-            })()}
-            </div>
+        {/* (R-8) Bannière : aucune clé API configurée */}
+        {needsApiKey && (
+          <div style={{ position: 'relative', zIndex: 200, maxWidth: '900px', margin: '0 auto 1rem', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem', flexWrap: 'wrap', padding: '0.7rem 1rem', background: 'rgba(251, 191, 36, 0.1)', border: '1px solid rgba(251, 191, 36, 0.4)', borderRadius: '10px', color: '#fbbf24', fontSize: '0.85rem' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Key size={16} /> {t(lang, 'no_api_key')}</span>
+            <button onClick={openSettings} style={{ background: 'var(--accent-color)', color: '#000', border: 'none', padding: '0.4rem 0.9rem', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+              {t(lang, 'open_settings')}
+            </button>
           </div>
         )}
+
+        {/* DASHBOARD OVERLAY */}
+        <Dashboard 
+          showDashboard={showDashboard}
+          setShowDashboard={setShowDashboard}
+          sidebarOpen={sidebarOpen}
+          bgRGB={bgRGB}
+          dashboardOpacity={dashboardOpacity}
+          setDashboardOpacity={setDashboardOpacity}
+          totalCost={totalCost}
+          costHistory={costHistory}
+        />
+
+        {/* SOURCE MODAL OVERLAY */}
+        <SourceModal selectedSource={selectedSource} setSelectedSource={setSelectedSource} bgRGB={bgRGB} />
         
         <div className="noise-overlay"></div>
         <NeuralNetwork />
@@ -936,66 +662,17 @@ export default function Home() {
         )}
         
         {/* Top Right Controls */}
-        <div className="top-right-controls" style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-          {messages.length > 0 && (
-            <button 
-              onClick={exportChatToMarkdown}
-              className="cost-pill"
-              title="Exporter la conversation en Markdown"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                background: 'var(--glass-bg)',
-                border: '1px solid var(--glass-border)',
-                padding: '0.5rem 1rem',
-                borderRadius: '20px',
-                color: 'var(--text-color)',
-                fontSize: '0.8rem',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                backdropFilter: 'blur(10px)'
-              }}
-            >
-              <Download size={14} />
-              <span>Export</span>
-            </button>
-          )}
-          <button 
-            onClick={() => setShowDashboard(true)}
-            className="cost-pill"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              background: 'var(--glass-bg)',
-              border: '1px solid var(--glass-border)',
-              padding: '0.4rem 0.8rem',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              color: 'var(--text-primary)'
-            }}
-            onMouseOver={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; e.currentTarget.style.borderColor = 'var(--accent-color)'; }}
-            onMouseOut={(e) => { e.currentTarget.style.background = 'var(--glass-bg)'; e.currentTarget.style.borderColor = 'var(--glass-border)'; }}
-          >
-            <Cpu size={14} style={{ color: 'var(--accent-color)' }} />
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, fontFamily: "'JetBrains Mono', monospace" }}>
-              ${totalCost.toFixed(5)}
-            </span>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', marginLeft: '0.3rem', borderLeft: '1px solid var(--glass-border)', paddingLeft: '0.5rem', opacity: 0.8 }}>
-              {!systemPassword ? "Verrouillé" : "Serveur IA"}
-            </span>
-          </button>
-
-          <div className="theme-switch-wrapper" style={{ margin: 0 }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>{theme === 'dark' ? 'DARK' : 'LIGHT'}</span>
-            <label className="theme-switch">
-              <input type="checkbox" checked={theme === 'light'} onChange={toggleTheme} />
-              <span className="slider"></span>
-            </label>
-          </div>
-        </div>
+        <TopBar
+          lang={lang}
+          setLang={setLang}
+          theme={theme}
+          toggleTheme={toggleTheme}
+          messagesLength={messages.length}
+          onExport={exportChatToMarkdown}
+          onOpenDashboard={() => setShowDashboard(true)}
+          totalCost={totalCost}
+          systemPassword={systemPassword}
+        />
 
         {(messages.length === 0) && (
           <div className="hero-wrapper" style={{ marginTop: '6vh' }}>
@@ -1004,7 +681,7 @@ export default function Home() {
               <span className="hero-badge">RAG</span>
             </div>
             <p className="hero-subtitle" style={{ textAlign: 'center', color: 'var(--text-secondary)', marginTop: '0.8rem', fontSize: '0.9rem', letterSpacing: '1px', opacity: 0.7 }}>
-              Votre assistant de recherche intelligent
+              {t(lang, 'subtitle')}
             </p>
           </div>
         )}
@@ -1013,7 +690,7 @@ export default function Home() {
         {messages.length > 0 && (
           <div className="chat-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', maxWidth: '900px', margin: '0 auto 1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--glass-border)' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', fontFamily: "'Outfit', sans-serif", fontWeight: 600 }}>DISCUSSION ACTIVE</span>
-            <button onClick={handleReset} className="reset-btn" title="Reprendre à zéro" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+            <button onClick={handleReset} className="reset-btn" aria-label="Nouvelle conversation" title="Reprendre à zéro" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', color: 'var(--text-secondary)', cursor: 'pointer', width: '36px', height: '36px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
               <X size={16} />
             </button>
           </div>
@@ -1023,208 +700,47 @@ export default function Home() {
         {messages.length > 0 && (
           <div className="chat-messages-container" style={{ flex: 1, overflowY: 'auto', paddingBottom: '120px', width: '100%', maxWidth: '900px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
             {messages.map((msg, idx) => (
-              <div key={msg.id} className={`chat-message-row ${msg.role}`} style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', marginTop: (msg.role === 'user' && idx > 0) ? '1.25rem' : '0' }}>
-                
-                {/* User Message Rendering (bulle de chat) */}
-                {msg.role === 'user' && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-                    <div className="user-bubble">{msg.content}</div>
-                  </div>
-                )}
-
-                {/* Assistant Message Rendering */}
-                {msg.role === 'assistant' && (
-                  <div className="assistant-message-container" style={{ display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%' }}>
-                    
-                    {msg.loading ? (
-                      <div className="skeleton-container" style={{ padding: 0, background: 'none', border: 'none', boxShadow: 'none' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", fontSize: '0.85rem' }}>
-                          <Loader2 size={16} className="animate-spin" />
-                          <span>{msg.status || "ANALYSE EN COURS..."}</span>
-                        </div>
-                        <div className="skeleton-line title" style={{ marginTop: '0.8rem' }}></div>
-                        <div className="skeleton-line full"></div>
-                        <div className="skeleton-line full"></div>
-                        <div className="skeleton-line medium"></div>
-                      </div>
-                    ) : (
-                      <>
-                        {/* Response Text */}
-                        <div className="result-body" style={{ marginTop: 0 }}>
-                          <ReactMarkdown 
-                            remarkPlugins={[remarkGfm]}
-                            components={{
-                              code({node, className, children, ...props}: any) {
-                                // M5 : react-markdown v10 ne fournit plus la prop `inline`.
-                                // On détecte un bloc via la présence d'une classe language-*
-                                // (les codes inline n'en ont pas).
-                                const match = /language-(\w+)/.exec(className || '')
-                                return match ? (
-                                  <SyntaxHighlighter
-                                    style={vscDarkPlus as any}
-                                    language={match[1]}
-                                    PreTag="div"
-                                    customStyle={{ margin: '0 0 0.9rem', borderRadius: '10px', border: '1px solid var(--glass-border)', fontSize: '0.85rem' }}
-                                    {...props}
-                                  >
-                                    {String(children).replace(/\n$/, '')}
-                                  </SyntaxHighlighter>
-                                ) : (
-                                  <code className={className} {...props}>
-                                    {children}
-                                  </code>
-                                )
-                              }
-                            }}
-                          >
-                            {msg.content}
-                          </ReactMarkdown>
-                        </div>
-
-                        {/* Inline Horizontal Sources */}
-                        {msg.sources && msg.sources.length > 0 && (
-                          <div className="sources-inline-container" style={{ marginTop: '0.5rem' }}>
-                            <h3 style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.6rem', fontFamily: "'Outfit', sans-serif", display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                              <Link2 size={12} /> Sources ({msg.sources.length})
-                            </h3>
-                            <div className="sources-horizontal-scroll" style={{ display: 'flex', gap: '0.8rem', overflowX: 'auto', paddingBottom: '0.6rem' }}>
-                              {msg.sources.map((src: any, i: number) => {
-                                const rawSource = String(src.source || src.metadata?.source || "");
-                                const url = src.url || src.metadata?.url || (rawSource.startsWith("http") ? rawSource : null);
-                                let label = "Document Local";
-                                if (rawSource && !rawSource.startsWith("http")) {
-                                  label = rawSource.split(/[\\/]/).pop() || rawSource;
-                                } else if (url) {
-                                  try { label = new URL(url).hostname.replace(/^www\./, ""); } catch { label = url; }
-                                }
-                                return (
-                                  <div key={i} className="source-card-compact" onClick={() => url && window.open(url, "_blank")} title={url || rawSource} style={{ cursor: url ? 'pointer' : 'default', flex: '0 0 240px' }}>
-                                    <div className="source-card-header">
-                                      <span className="source-card-number">{i + 1}</span>
-                                      <span className="source-card-title" style={{ display: 'flex', alignItems: 'center', gap: '4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                        {url ? <Globe size={12} style={{ flexShrink: 0 }}/> : <Folder size={12} style={{ flexShrink: 0 }}/>}
-                                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
-                                        {url && <ExternalLink size={12} style={{ marginLeft: 'auto', flexShrink: 0, color: 'var(--accent-color)' }} />}
-                                      </span>
-                                    </div>
-                                    <div className="source-card-snip">
-                                      {src.content || src.page_content}
-                                    </div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Footer actions and metrics */}
-                        <div className="assistant-message-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', paddingTop: '0.6rem', borderTop: '1px solid var(--glass-border)', flexWrap: 'wrap', gap: '1rem' }}>
-                          <div style={{ display: 'flex', gap: '0.8rem' }}>
-                            <button className="action-btn" onClick={() => copyToClipboard(msg.content, msg.id)} title="Copier la réponse">
-                              {copiedId === msg.id ? <><Check size={14} /> Copié !</> : <><Copy size={14} /> Copier</>}
-                            </button>
-                            <button className="action-btn" onClick={() => downloadMarkdown(msg.content)} title="Télécharger en Markdown">
-                              <Download size={14} /> Markdown
-                            </button>
-                          </div>
-
-                          {msg.metrics && (
-                            <div style={{ display: 'flex', gap: '1rem', color: 'var(--text-secondary)', fontSize: '0.75rem', fontFamily: "'JetBrains Mono', monospace" }}>
-                              {typeof msg.metrics.duration === 'number' && (
-                                <span>⚡ Vitesse: {msg.metrics.duration}s</span>
-                              )}
-                              <span>🔧 Corrections: {msg.metrics.corrections || 0}</span>
-                              <span>🌐 Web: {msg.metrics.webUsed ? 'Oui' : 'Non'}</span>
-                              {msg.metrics.cost !== undefined && (
-                                <span style={{ color: 'var(--accent-color)' }}>💸 ${msg.metrics.cost.toFixed(5)}</span>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
+              <ChatMessage 
+                key={msg.id}
+                msg={msg}
+                idx={idx}
+                loading={loading}
+                lang={lang}
+                copiedId={copiedId}
+                messagesLength={messages.length}
+                editUserMessage={editUserMessage}
+                setSelectedSource={setSelectedSource}
+                copyToClipboard={copyToClipboard}
+                downloadMarkdown={downloadMarkdown}
+                regenerateLast={regenerateLast}
+              />
             ))}
             <div ref={messagesEndRef} />
           </div>
         )}
 
         {/* SEARCH ROW (BOTTOM STICKY FOR ACTIVE CHAT, MIDDLE FOR HOME) */}
-        <div className="search-header-row" style={{
-          display: 'flex',
-          gap: '1rem',
-          width: messages.length > 0 ? (sidebarOpen ? 'min(900px, calc(100vw - 300px - 3rem))' : 'min(900px, calc(100vw - 3rem))') : '100%',
-          maxWidth: '900px',
-          margin: '0 auto',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: messages.length > 0 ? 'fixed' : 'relative',
-          bottom: messages.length > 0 ? '2rem' : 'auto',
-          // Centre de la zone de contenu : la sidebar fait 300px de large
-          left: messages.length > 0 ? (sidebarOpen ? 'calc(50% + 150px)' : '50%') : 'auto',
-          transform: messages.length > 0 ? 'translateX(-50%)' : 'none',
-          padding: messages.length > 0 ? '1rem 2rem' : '0',
-          background: messages.length > 0 ? `rgba(${bgRGB}, 0.8)` : 'transparent',
-          backdropFilter: messages.length > 0 ? 'blur(10px)' : 'none',
-          boxShadow: messages.length > 0 ? '0 -20px 40px var(--bg-color)' : 'none',
-          zIndex: 100,
-          transition: 'all 0.3s ease'
-        }}>
-          <div className={`search-container ${isSearchFocused ? 'focused' : ''}`} style={{ zIndex: 10, flex: 1, margin: 0, maxWidth: messages.length > 0 ? '100%' : '680px' }}>
-            <div className="search-input-wrapper">
-              <input 
-                type="file" 
-                accept=".pdf,.txt,.docx,.xlsx,.pptx" 
-                onChange={handleFileUpload} 
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                id="file-upload"
-              />
-              <label htmlFor="file-upload" className={`search-attach-btn ${uploading ? 'uploading' : ''}`} title="Ajouter un document">
-                {uploading ? <Loader2 size={16} className="animate-spin" /> : <Paperclip size={18} strokeWidth={2.5} />}
-              </label>
-              <input 
-                type="file" 
-                accept="image/*" 
-                onChange={handleImageUpload} 
-                ref={imageInputRef}
-                style={{ display: 'none' }}
-                id="image-upload"
-              />
-              <label htmlFor="image-upload" className="search-attach-btn" title="Ajouter une image">
-                <ImageIcon size={18} strokeWidth={2.5} />
-              </label>
-              <input
-                type="text"
-                className="main-search-input"
-                placeholder={messages.length > 0 ? "Poser une question de suivi..." : "Que souhaitez-vous savoir ?"}
-                value={query}
-                onFocus={() => setIsSearchFocused(true)}
-                onBlur={() => setIsSearchFocused(false)}
-                onChange={(e) => setQuery(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch(query)}
-              />
-              {selectedImage && (
-                <div style={{ position: 'absolute', bottom: '120%', left: '1rem', background: 'var(--glass-bg)', padding: '0.2rem', borderRadius: '8px', border: '1px solid var(--glass-border)', display: 'flex', alignItems: 'flex-start', gap: '0.5rem', zIndex: 10 }}>
-                  <img src={selectedImage} alt="Preview" style={{ height: '40px', borderRadius: '4px' }} />
-                  <button onClick={() => setSelectedImage(null)} style={{ background: 'var(--accent-color)', border: 'none', borderRadius: '50%', width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#fff' }}>
-                    <X size={12} />
-                  </button>
-                </div>
-              )}
-              <button onClick={() => handleSearch(query)} className="search-submit-btn" disabled={loading} title="Lancer l'analyse">
-                <Search size={18} strokeWidth={2.5} />
-              </button>
-              {uploadMessage && (
-                <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', textAlign: 'center', marginTop: '0.5rem', fontSize: '0.75rem', color: 'var(--accent-color)', fontFamily: "'JetBrains Mono', monospace", zIndex: 5 }}>
-                  {uploadMessage}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
+        <SearchBar
+          lang={lang}
+          messagesLength={messages.length}
+          sidebarOpen={sidebarOpen}
+          bgRGB={bgRGB}
+          query={query}
+          setQuery={setQuery}
+          onSearch={handleSearch}
+          loading={loading}
+          onStop={handleStop}
+          uploading={uploading}
+          uploadMessage={uploadMessage}
+          onFileUpload={handleFileUpload}
+          onImageUpload={handleImageUpload}
+          fileInputRef={fileInputRef}
+          imageInputRef={imageInputRef}
+          selectedImage={selectedImage}
+          setSelectedImage={setSelectedImage}
+          isSearchFocused={isSearchFocused}
+          setIsSearchFocused={setIsSearchFocused}
+        />
 
         {/* HOME MODE CONTROLS & WELCOME CARDS (ONLY ON ROOT SCREEN) */}
         {messages.length === 0 && (
@@ -1232,39 +748,39 @@ export default function Home() {
             <div className="mode-segmented-control">
               <button className={`mode-btn ${mode === 'hybrid' ? 'active' : ''}`} onClick={() => setMode('hybrid')}>
                 <Sparkles size={16} />
-                Hybride
+                {t(lang, 'mode_hybrid')}
               </button>
               <button className={`mode-btn ${mode === 'web' ? 'active' : ''}`} onClick={() => setMode('web')}>
                 <Globe size={16} />
-                Web
+                {t(lang, 'mode_web')}
               </button>
               <button className={`mode-btn ${mode === 'local' ? 'active' : ''}`} onClick={() => setMode('local')}>
                 <Folder size={16} />
-                Local
+                {t(lang, 'mode_local')}
               </button>
             </div>
             
             <div className="welcome-grid">
-              <div className="welcome-card" onClick={() => handleSearch("Explique le concept d'Agentic RAG")}>
+              <div className="welcome-card" onClick={() => handleSearch(lang === 'en' ? "Explain the concept of Agentic RAG" : "Explique le concept d'Agentic RAG")}>
                 <Cpu size={24} />
-                <div className="welcome-card-title">Agentic RAG</div>
-                <div className="welcome-card-subtitle">Comprendre l'architecture et ses avantages</div>
+                <div className="welcome-card-title">{t(lang, 'card_rag_t')}</div>
+                <div className="welcome-card-subtitle">{t(lang, 'card_rag_s')}</div>
               </div>
-              <div className="welcome-card" onClick={() => handleSearch("Quelles sont les dernières actus IA ?")}>
+              <div className="welcome-card" onClick={() => handleSearch(lang === 'en' ? "What is the latest AI news?" : "Quelles sont les dernières actus IA ?")}>
                 <Globe size={24} />
-                <div className="welcome-card-title">Actualités IA</div>
-                <div className="welcome-card-subtitle">Les dernières avancées du secteur</div>
+                <div className="welcome-card-title">{t(lang, 'card_news_t')}</div>
+                <div className="welcome-card-subtitle">{t(lang, 'card_news_s')}</div>
               </div>
-              <div className="welcome-card" onClick={() => handleSearch("Résume les informations clés du manuel")}>
+              <div className="welcome-card" onClick={() => handleSearch(lang === 'en' ? "Summarize the key information from the manual" : "Résume les informations clés du manuel")}>
                 <BookOpen size={24} />
-                <div className="welcome-card-title">Résumé Local</div>
-                <div className="welcome-card-subtitle">Synthèse de votre base documentaire</div>
+                <div className="welcome-card-title">{t(lang, 'card_local_t')}</div>
+                <div className="welcome-card-subtitle">{t(lang, 'card_local_s')}</div>
               </div>
             </div>
             
             <div className="suggestions-container" style={{ marginTop: '4rem', textAlign: 'center' }}>
               <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '1.2rem', textTransform: 'uppercase', letterSpacing: '1.5px', opacity: 0.6 }}>
-                Recherches suggérées
+                {t(lang, 'suggestions')}
               </p>
               <div className="suggestions-flex" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', alignItems: 'center', maxWidth: '800px', margin: '0 auto' }}>
                 <button className="suggestion-pill" onClick={() => handleSearch("Comment optimiser un système RAG ?")} style={{ width: '100%', maxWidth: '400px', justifyContent: 'center' }}>
@@ -1286,8 +802,8 @@ export default function Home() {
 
         {/* FOOTER (ONLY ON ROOT SCREEN) */}
         {messages.length === 0 && (
-          <div className="app-footer" style={{ marginTop: '4rem', marginBottom: '2rem', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.4, letterSpacing: '1px' }}>
-            Propulsé par Agentic RAG • v3.1
+          <div className="app-footer" style={{ marginTop: '4rem', marginBottom: '2rem', width: '100%', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.75rem', opacity: 0.65, letterSpacing: '1px' }}>
+            Propulsé par Agentic RAG • v{APP_VERSION}
           </div>
         )}
 

@@ -18,7 +18,7 @@ from typing_extensions import TypedDict
 from pydantic import BaseModel, Field
 
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings.fastembed import FastEmbedEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import ChatPromptTemplate
@@ -28,14 +28,17 @@ from langchain_core.messages import SystemMessage, HumanMessage
 from langgraph.graph import StateGraph, END
 
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
-DEFAULT_MODEL = "gemini-1.5-flash"
+# gemini-1.5-flash est en fin de vie chez Google : 2.5-flash est le successeur direct.
+DEFAULT_MODEL = "gemini-2.5-flash"
+
+
+def resolve_model(model: str = None) -> str:
+    """Priorité : paramètre explicite > LLM_MODEL du .env > défaut.
+    Corrige le bug où le modèle choisi dans les Paramètres était ignoré
+    pour les fournisseurs gemini / gemini-openai."""
+    return (model or os.environ.get("LLM_MODEL", "").strip() or DEFAULT_MODEL)
 MAX_CORRECTIONS = 2  # nombre max de cycles d'auto-correction avant acceptation
-# En mode exe (PyInstaller), la base doit vivre à côté de l'exe (persistante),
-# pas dans le dossier temporaire d'extraction (_MEIPASS) qui disparaît.
-if getattr(sys, "frozen", False):
-    CHROMA_DB_DIR = os.path.join(os.path.dirname(sys.executable), "chroma_db")
-else:
-    CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
+from vectorstore import CHROMA_DB_DIR, get_embeddings, get_vectorstore, get_retriever, invalidate_caches
 
 
 # ---------------------------------------------------------------------------
@@ -55,6 +58,9 @@ class GraphState(TypedDict):
     search_count: int
     generation_grade: str      # "supported" / "not supported" / "not useful"
     image_base64: str          # Image base64 optionnelle
+    quality: bool              # Mode qualité : auto-évaluation activée
+    retrieval_score: float     # (R-4) meilleur score de pertinence des documents
+    scope: str                 # (R-13) portée documentaire (id de conversation) ou vide
 
 
 # ---------------------------------------------------------------------------
@@ -78,19 +84,43 @@ class GradeAnswer(BaseModel):
 # ---------------------------------------------------------------------------
 # LLM / retriever helpers
 # ---------------------------------------------------------------------------
-def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
+def get_llm(api_key: str, temperature: float = 0, model: str = None, streaming: bool = False, callbacks: list = None):
     key = api_key or GEMINI_API_KEY
+    model = resolve_model(model)
     # Fournisseur explicite via LLM_PROVIDER (gemini | deepseek | gemini-openai).
     # Évite le routage fragile par préfixe de clé.
     provider = os.environ.get("LLM_PROVIDER", "").strip().lower()
     if provider == "gemini":
-        return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
+        return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature, streaming=streaming, callbacks=callbacks)
     if provider == "deepseek":
         return ChatOpenAI(
             model="deepseek-chat",
             api_key=key,
             base_url="https://api.deepseek.com/v1",
             temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks
+        )
+    if provider == "ollama":
+        # Ollama local : gratuit et 100% hors-ligne (API compatible OpenAI).
+        return ChatOpenAI(
+            model=os.environ.get("LLM_MODEL", "llama3.1"),
+            api_key=key or "ollama",  # Ollama n'exige pas de vraie clé
+            base_url=os.environ.get("LLM_BASE_URL", "http://localhost:11434/v1"),
+            temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks,
+        )
+    if provider == "custom":
+        # Fournisseur générique : toute API compatible OpenAI
+        # (OpenAI, Mistral, Groq, OpenRouter, Ollama local, Anthropic…).
+        return ChatOpenAI(
+            model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
+            api_key=key,
+            base_url=os.environ.get("LLM_BASE_URL") or None,
+            temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks,
         )
     if provider == "gemini-openai":
         return ChatOpenAI(
@@ -98,6 +128,8 @@ def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
             api_key=key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks
         )
     # Heuristique héritée (si LLM_PROVIDER absent)
     if key.startswith("AQ."):
@@ -106,6 +138,8 @@ def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
             api_key=key,
             base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
             temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks
         )
     elif key.startswith("sk-"):
         return ChatOpenAI(
@@ -113,27 +147,22 @@ def get_llm(api_key: str, temperature: float = 0, model: str = DEFAULT_MODEL):
             api_key=key,
             base_url="https://api.deepseek.com/v1",
             temperature=temperature,
+            streaming=streaming,
+            callbacks=callbacks
         )
-    return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature)
+    return ChatGoogleGenerativeAI(model=model, google_api_key=key, temperature=temperature, streaming=streaming, callbacks=callbacks)
 
 
-@lru_cache(maxsize=1)
-def _get_embeddings():
-    # Coûteux à instancier : mis en cache pour tout le process.
-    # En mode exe : utilise le modèle embarqué s'il est présent (hors-ligne),
-    # sinon retombe sur le téléchargement/cache HuggingFace.
-    bundled = os.path.join(getattr(sys, "_MEIPASS", ""), "models", "all-MiniLM-L6-v2")
-    model_ref = bundled if os.path.isdir(bundled) else "all-MiniLM-L6-v2"
-    return HuggingFaceEmbeddings(model_name=model_ref)
 
 
-@lru_cache(maxsize=1)
-def get_retriever():
-    vectorstore = Chroma(
-        persist_directory=CHROMA_DB_DIR,
-        embedding_function=_get_embeddings(),
-    )
-    return vectorstore.as_retriever(search_kwargs={"k": 5})
+
+# (R-4) Seuil de pertinence pour raviver le repli web du CRAG.
+# 0.0 = désactivé (comportement historique : web seulement si 0 document).
+# Sinon, si le meilleur score de pertinence est sous ce seuil, on considère
+# les documents locaux trop faibles et on déclenche la recherche web.
+# Les scores de Chroma sont dans [0, 1] (1 = très pertinent). Valeur de départ
+# raisonnable si activé : 0.25–0.4 selon le modèle d'embeddings.
+RELEVANCE_THRESHOLD = float(os.environ.get("RELEVANCE_THRESHOLD", "0") or "0")
 
 
 # ---------------------------------------------------------------------------
@@ -191,8 +220,9 @@ def _extract_usage(res) -> Tuple[int, int]:
         elif hasattr(res, "response_metadata") and res.response_metadata and "token_usage" in res.response_metadata:
             usage = res.response_metadata["token_usage"]
             return usage.get("prompt_tokens", 0), usage.get("completion_tokens", 0)
-    except Exception:
-        pass
+    except Exception as e:
+        import logging
+        logging.warning(f"Erreur extraction usage LLM (sous-estimation des coûts) : {e}")
     return 0, 0
 
 
@@ -269,74 +299,69 @@ def route_question(state: GraphState, api_key: str, model: str) -> Dict[str, Any
 
 def retrieve(state: GraphState) -> Dict[str, Any]:
     if state.get("mode") == "web":
-        return {"documents": [], "steps": list(state.get("steps", [])) + [_step("retrieve", "Recherche locale ignorée (Mode Web)")]}
-        
+        return {"documents": [], "retrieval_score": 0.0, "steps": list(state.get("steps", [])) + [_step("retrieve", "Recherche locale ignorée (Mode Web)")]}
+
     question = state["question"]
-    documents = get_retriever().invoke(question)
+    top_score = 0.0
+
+    # (R-13) Portée documentaire optionnelle. Si un scope (id de conversation)
+    # est fourni, on ne récupère que les documents de cette conversation OU
+    # marqués "global". Sans scope (défaut), aucun filtre : comportement
+    # historique inchangé, tous les documents sont visibles.
+    scope = state.get("scope")
+    search_filter = {"scope": {"$in": [scope, "global"]}} if scope else None
+
+    try:
+        # (R-4) On récupère les scores de pertinence pour pouvoir juger la
+        # qualité des documents locaux (et non plus seulement leur présence).
+        scored = get_vectorstore().similarity_search_with_relevance_scores(
+            question, k=5, filter=search_filter
+        )
+        documents = [doc for doc, _ in scored]
+        if scored:
+            top_score = max((s for _, s in scored), default=0.0)
+    except Exception:
+        # Repli robuste sur l'ancien chemin si le scoring n'est pas disponible.
+        try:
+            documents = get_vectorstore().similarity_search(question, k=5, filter=search_filter)
+        except Exception:
+            documents = get_retriever().invoke(question)
+
     steps = list(state.get("steps", []))
-    steps.append(_step("retrieve", f"{len(documents)} document(s) récupéré(s) depuis ChromaDB"))
-    return {"documents": documents, "steps": steps}
+    score_note = f", meilleur score {top_score:.2f}" if top_score else ""
+    steps.append(_step("retrieve", f"{len(documents)} document(s) récupéré(s) depuis ChromaDB{score_note}"))
+    return {"documents": documents, "retrieval_score": top_score, "steps": steps}
 
 
 
-def grade_documents(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
-    question = state["question"]
-    documents = state["documents"]
+def grade_documents(state: GraphState) -> Dict[str, Any]:
+    # (N9) Paramètres api_key/model retirés : plus d'appel LLM ici depuis R5.
+    documents = state.get("documents", [])
+    mode = state.get("mode")
+    top_score = state.get("retrieval_score", 0.0)
 
-    grader = get_llm(api_key, 0, model)
-    prompt = ChatPromptTemplate.from_messages([
-        ("system",
-         "You are an expert evaluator and information compressor.\n"
-         "Analyze the retrieved document content and determine if it is relevant to the user question.\n"
-         "If it is NOT relevant, reply with ONLY the word 'no'.\n"
-         "If it IS relevant, extract and output ONLY the key sentences or facts from the document that directly answer or support the question. Do not include introductory text, explanations or unrelated context. Keep the extracted text as short and condensed as possible."),
-        ("human", "Retrieved document:\n\n{document}\n\nUser question: {question}"),
-    ])
-    chain = prompt | grader
+    # (R-4) Le repli web se déclenche si :
+    #   - aucun document local (comportement historique), OU
+    #   - un seuil de pertinence est activé et le meilleur score est en dessous
+    #     (les documents locaux existent mais sont jugés hors sujet).
+    weak = RELEVANCE_THRESHOLD > 0 and top_score < RELEVANCE_THRESHOLD
+    web_search = "yes" if (not documents or weak) and mode != "local" else "no"
 
-    inputs = [{"document": doc.page_content, "question": question} for doc in documents]
-    if not inputs:
-        web_search_val = "no" if state.get("mode") == "local" else "yes"
-        return {"documents": [], "web_search": web_search_val, "steps": list(state.get("steps", [])), "input_tokens": state.get("input_tokens", 0), "output_tokens": state.get("output_tokens", 0)}
-
-    results = chain.batch(inputs)
-
-    filtered_docs = []
-    compressed_count = 0
-    total_in = 0
-    total_out = 0
-    
-    for doc, res in zip(documents, results):
-        in_tok, out_tok = _extract_usage(res)
-        total_in += in_tok
-        total_out += out_tok
-        content_stripped = res.content.strip()
-        if content_stripped.lower() != "no" and len(content_stripped) > 5:
-            # On crée un nouveau document contenant uniquement les faits pertinents et compressés
-            filtered_docs.append(Document(
-                page_content=content_stripped,
-                metadata=doc.metadata
-            ))
-            compressed_count += 1
-
-    web_search = "yes" if len(filtered_docs) < len(documents) or not filtered_docs else "no"
-    
-    # Si on est en mode local strict, on s'interdit formellement de basculer sur le web
-    if state.get("mode") == "local":
-        web_search = "no"
+    reason = ""
+    if web_search == "yes":
+        reason = " — fallback web déclenché" + (
+            f" (pertinence {top_score:.2f} < {RELEVANCE_THRESHOLD:.2f})" if weak and documents else ""
+        )
 
     steps = list(state.get("steps", []))
     steps.append(_step(
         "grade_documents",
-        f"{compressed_count}/{len(documents)} document(s) compressé(s) et retenu(s)"
-        + (" — fallback web déclenché" if web_search == "yes" else ""),
+        f"Filtrage : {len(documents)} doc(s) conservé(s){reason}",
     ))
     return {
-        "documents": filtered_docs, 
-        "web_search": web_search, 
+        "documents": documents,
+        "web_search": web_search,
         "steps": steps,
-        "input_tokens": state.get("input_tokens", 0) + total_in,
-        "output_tokens": state.get("output_tokens", 0) + total_out
     }
 
 
@@ -360,13 +385,15 @@ def web_search(state: GraphState, tavily_key: str) -> Dict[str, Any]:
     }
 
 
-def generate(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
+def generate(state: GraphState, api_key: str, model: str, callbacks: list = None) -> Dict[str, Any]:
     question = state["question"]
     documents = state["documents"]
     chat_history = state.get("chat_history", [])
 
-    llm = get_llm(api_key, 0.2, model)
-    context = "\n\n".join(doc.page_content for doc in documents)
+    use_callbacks = callbacks if not state.get('quality') else None
+    llm = get_llm(api_key, 0.2, model, streaming=bool(use_callbacks), callbacks=use_callbacks)
+    # Contexte numéroté pour permettre les citations [1], [2]… dans la réponse.
+    context = "\n\n".join(f"[{i + 1}] {doc.page_content}" for i, doc in enumerate(documents))
     
     # Formatage de l'historique conversationnel
     history_text = "Aucun historique récent."
@@ -377,7 +404,10 @@ def generate(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
          "You are an assistant for question-answering tasks.\n"
          "Use the following pieces of retrieved context to answer the question. "
          "If you don't know the answer, say that you don't know.\n"
-         "Keep the answer concise and professional. Respond in the same language as the question.\n\n"
+         "Keep the answer concise and professional. Respond in the same language as the question.\n"
+         "The context passages are numbered [1], [2], etc. When you use information "
+         "from a passage, cite its number in square brackets at the end of the sentence, "
+         "e.g. 'The margin grew by 5% [2].' Only cite numbers that exist in the context.\n\n"
          "Here is the recent conversation history (use it if the user refers to previous messages):\n"
          f"{history_text}\n"
     )
@@ -390,12 +420,26 @@ def generate(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
             b64_str = f"data:image/jpeg;base64,{b64_str}"
         human_content.append({"type": "image_url", "image_url": {"url": b64_str}})
 
-    sys_msg = SystemMessage(content=sys_content)
-    human_msg = HumanMessage(content=human_content)
-
-    res = llm.invoke([sys_msg, human_msg])
-    in_tok, out_tok = _extract_usage(res)
-    generation = res.content
+    in_tok, out_tok = 0, 0
+    messages = [SystemMessage(content=sys_content), HumanMessage(content=human_content)]
+    if use_callbacks:
+        generation = ''
+        last_chunk = None
+        for chunk in llm.stream(messages):
+            generation += str(chunk.content)
+            last_chunk = chunk
+            if hasattr(chunk, 'content') and chunk.content:
+                for cb in use_callbacks:
+                    if hasattr(cb, 'on_llm_new_token'): cb.on_llm_new_token(str(chunk.content))
+        if last_chunk:
+            try:
+                in_tok, out_tok = _extract_usage(last_chunk)
+            except Exception:
+                in_tok, out_tok = 0, 0
+    else:
+        res = llm.invoke(messages)
+        generation = res.content
+        in_tok, out_tok = _extract_usage(res)
 
     steps = list(state.get("steps", []))
     steps.append(_step("generate", "Réponse synthétisée par l'IA à partir du contexte validé et de l'historique"))
@@ -418,55 +462,39 @@ def decide_to_generate(state: GraphState) -> Literal["web_search", "generate"]:
 
 
 def grade_generation(state: GraphState, api_key: str, model: str) -> Dict[str, Any]:
-    """Nœud d'évaluation (M4) : renvoie un état mis à jour (grade + tokens),
-    au lieu de muter l'état in-place, pour que le comptage de coûts soit
-    correctement remonté par le stream du graphe."""
-    # Garde anti-boucle : au-delà de MAX_CORRECTIONS on accepte la réponse.
+    # (R5) Par défaut : évaluation désactivée (coûts / latence divisés par 4).
+    # Mode qualité : l'utilisateur peut réactiver l'auto-évaluation pour les
+    # questions importantes (interrupteur dans les paramètres).
+    if not state.get("quality") or not state.get("documents"):
+        return {"generation_grade": "supported"}
     if state.get("corrections", 0) >= MAX_CORRECTIONS:
+        # Garde anti-boucle : on accepte la réponse après MAX_CORRECTIONS essais.
         return {"generation_grade": "supported"}
 
-    question = state["question"]
-    documents = state["documents"]
-    generation = state["generation"]
-    context_str = "\n\n".join(d.page_content for d in documents)
-
-    hallucination_grader = get_llm(api_key, 0, model)
-    p1 = ChatPromptTemplate.from_messages([
+    llm = get_llm(api_key, 0, model)
+    context = "\n\n".join(d.page_content for d in state["documents"])[:12000]
+    prompt = ChatPromptTemplate.from_messages([
         ("system",
-         "You are an evaluator assessing whether an LLM generation is grounded in / supported by a set of retrieved facts.\n"
-         "Give a binary score 'yes' or 'no'. 'yes' means the answer is grounded in and fully supported by the facts.\n"
-         "Return ONLY the word 'yes' or 'no'."),
-        ("human", "Facts:\n\n{documents}\n\nLLM generation: {generation}"),
+         "You are a strict grader. Determine whether the answer is grounded in "
+         "the provided facts. Return ONLY the single word 'yes' if the answer is "
+         "supported by the facts, or 'no' if it contains unsupported claims."),
+        ("human", "Facts:\n{context}\n\nAnswer:\n{generation}")
     ])
-    res1 = (p1 | hallucination_grader).invoke(
-        {"documents": context_str, "generation": generation}
-    )
-    in1, out1 = _extract_usage(res1)
-    grounded = "yes" in res1.content.lower()
+    try:
+        res = (prompt | llm).invoke({"context": context, "generation": state.get("generation", "")})
+        in_tok, out_tok = _extract_usage(res)
+        grounded = "yes" in res.content.strip().lower()
+    except Exception:
+        # Le grader ne doit jamais faire échouer la réponse principale.
+        return {"generation_grade": "supported"}
 
-    in2 = out2 = 0
-    if not grounded:
-        grade = "not supported"
-    else:
-        answer_grader = get_llm(api_key, 0, model)
-        p2 = ChatPromptTemplate.from_messages([
-            ("system",
-             "You are an evaluator assessing whether an LLM generation addresses the user question.\n"
-             "Give a binary score 'yes' or 'no'. 'yes' means the answer fully addresses the question.\n"
-             "Return ONLY the word 'yes' or 'no'."),
-            ("human", "User question: {question}\n\nLLM generation: {generation}"),
-        ])
-        res2 = (p2 | answer_grader).invoke(
-            {"question": question, "generation": generation}
-        )
-        in2, out2 = _extract_usage(res2)
-        useful = "yes" in res2.content.lower()
-        grade = "supported" if useful else "not useful"
-
+    steps = list(state.get("steps", []))
+    steps.append(_step("grade_generation", "Mode qualité : réponse " + ("validée ✓" if grounded else "jugée insuffisante, correction…")))
     return {
-        "generation_grade": grade,
-        "input_tokens": state.get("input_tokens", 0) + in1 + in2,
-        "output_tokens": state.get("output_tokens", 0) + out1 + out2,
+        "generation_grade": "supported" if grounded else "not supported",
+        "steps": steps,
+        "input_tokens": state.get("input_tokens", 0) + in_tok,
+        "output_tokens": state.get("output_tokens", 0) + out_tok,
     }
 
 
@@ -493,15 +521,17 @@ def decide_after_correction(state: GraphState) -> Literal["web_search", "generat
 # ---------------------------------------------------------------------------
 # Graph
 # ---------------------------------------------------------------------------
-def build_crag_graph(gemini_key: str, tavily_key: str, model: str = DEFAULT_MODEL):
+def build_crag_graph(gemini_key: str, tavily_key: str, model: str = None, callbacks: list = None):
+    # model=None → resolve_model() lira LLM_MODEL du .env (choix des Paramètres).
+    model = resolve_model(model)
     workflow = StateGraph(GraphState)
 
     workflow.add_node("contextualize_query", lambda s: contextualize_query(s, gemini_key, model))
     workflow.add_node("route_question", lambda s: route_question(s, gemini_key, model))
     workflow.add_node("retrieve", retrieve)
-    workflow.add_node("grade_documents", lambda s: grade_documents(s, gemini_key, model))
+    workflow.add_node("grade_documents", grade_documents)
     workflow.add_node("web_search", lambda s: web_search(s, tavily_key))
-    workflow.add_node("generate", lambda s: generate(s, gemini_key, model))
+    workflow.add_node("generate", lambda s: generate(s, gemini_key, model, callbacks=callbacks))
     workflow.add_node("grade_generation", lambda s: grade_generation(s, gemini_key, model))
     workflow.add_node("self_correct", _bump_corrections)
 
@@ -537,11 +567,13 @@ def build_crag_graph(gemini_key: str, tavily_key: str, model: str = DEFAULT_MODE
     return workflow.compile()
 
 
-def initial_state(question: str, chat_history: List[Dict[str, str]] = None, mode: str = "hybrid", image_base64: str = None) -> GraphState:
+def initial_state(question: str, chat_history: List[Dict[str, str]] = None, mode: str = "hybrid", image_base64: str = None, quality: bool = False, scope: str = "") -> GraphState:
     return {
         "question": question,
         "chat_history": chat_history or [],
         "image_base64": image_base64,
+        "quality": quality,
+        "scope": scope or "",
         "generation": "",
         "web_search": "no",
         "documents": [],
@@ -552,4 +584,5 @@ def initial_state(question: str, chat_history: List[Dict[str, str]] = None, mode
         "output_tokens": 0,
         "search_count": 0,
         "generation_grade": "",
+        "retrieval_score": 0.0,
     }

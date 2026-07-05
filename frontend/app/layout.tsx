@@ -21,9 +21,11 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body>
-        <div className="scanlines"></div>
-        {children}
+      <body style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          <div className="scanlines"></div>
+          {children}
+        </div>
       </body>
     </html>
   );

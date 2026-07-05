@@ -40,6 +40,11 @@
   transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
+option {
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+}
+
 /* ---- Base Theme & Cursor ---- */
 html, body { 
   font-family: 'Inter', sans-serif; 
@@ -154,12 +159,19 @@ html, body {
   background-clip: text;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0.8rem;
 }
 .sb-brand::before {
-  content: '⚡';
-  font-size: 1.2rem;
-  -webkit-text-fill-color: initial;
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url('/favicon.ico');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transform: translateY(-4px);
 }
 
 .sb-section-title {

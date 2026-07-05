@@ -18,6 +18,8 @@ Thumbs.db
 # Build artifacts
 dist/
 build/
+installer/
+Output/
 *.spec
 crash.log
 

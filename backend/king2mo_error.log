@@ -1,0 +1,794 @@
+Traceback (most recent call last):
+  File "C:\Users\diaba\.gemini\antigravity\scratch\agentic_crag_app\backend\main.py", line 686, in <module>
+    print("🔑 MOT DE PASSE DU SERVEUR KING2MO (À coller dans les Paramètres) :")
+  File "C:\Users\diaba\AppData\Roaming\uv\python\cpython-3.11-windows-x86_64-none\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\U0001f511' in position 0: character maps to <undefined>
+
+2026-07-05 02:57:02,502 INFO uvicorn.error: Started server process [35284]
+2026-07-05 02:57:02,513 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 02:57:02,515 INFO uvicorn.error: Application startup complete.
+2026-07-05 02:57:02,516 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 02:57:05,527 INFO uvicorn.access: 127.0.0.1:52853 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 02:57:05,649 INFO uvicorn.access: 127.0.0.1:61216 - "GET / HTTP/1.1" 200
+2026-07-05 02:57:05,854 INFO uvicorn.access: 127.0.0.1:61216 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 02:57:05,856 INFO uvicorn.access: 127.0.0.1:64228 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 02:57:05,864 INFO uvicorn.access: 127.0.0.1:61085 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 02:57:05,867 INFO uvicorn.access: 127.0.0.1:62181 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 02:57:05,869 INFO uvicorn.access: 127.0.0.1:53127 - "GET /_next/static/chunks/1wkeg-nsditbs.js HTTP/1.1" 200
+2026-07-05 02:57:05,871 INFO uvicorn.access: 127.0.0.1:61770 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 02:57:05,887 INFO uvicorn.access: 127.0.0.1:61216 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 02:57:05,933 INFO uvicorn.access: 127.0.0.1:53127 - "GET /_next/static/chunks/11i4-6tomnj4f.js HTTP/1.1" 200
+2026-07-05 02:57:06,005 INFO uvicorn.access: 127.0.0.1:61216 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 02:57:07,240 INFO uvicorn.access: 127.0.0.1:63464 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 02:57:07,242 INFO uvicorn.access: 127.0.0.1:57934 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 02:57:23,748 INFO uvicorn.access: 127.0.0.1:63464 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 02:57:23,759 INFO uvicorn.access: 127.0.0.1:57934 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 02:57:23,759 INFO uvicorn.access: 127.0.0.1:56515 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 02:57:24,257 INFO uvicorn.access: 127.0.0.1:56515 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 02:57:46,714 INFO uvicorn.access: 127.0.0.1:50757 - "DELETE /api/conversations/1ba883dc34f541e4880d8d1100e37572 HTTP/1.1" 200
+2026-07-05 02:57:46,725 INFO uvicorn.access: 127.0.0.1:50757 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 02:57:47,210 INFO uvicorn.access: 127.0.0.1:50757 - "DELETE /api/conversations/0444b14eea8543b8b7cc86131cf5de78 HTTP/1.1" 200
+2026-07-05 02:57:47,219 INFO uvicorn.access: 127.0.0.1:50757 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 02:57:47,441 INFO uvicorn.access: 127.0.0.1:50757 - "DELETE /api/conversations/01f1fa2cbdc94308a82095fdde0889c0 HTTP/1.1" 200
+2026-07-05 02:57:47,448 INFO uvicorn.access: 127.0.0.1:50757 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 02:57:53,142 INFO uvicorn.access: 127.0.0.1:61284 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:00:57,371 INFO uvicorn.access: 127.0.0.1:53926 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:00:58,411 INFO uvicorn.access: 127.0.0.1:53926 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:01:17,340 INFO uvicorn.access: 127.0.0.1:62361 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:11:40,581 INFO uvicorn.error: Started server process [34512]
+2026-07-05 03:11:40,581 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:11:40,581 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:11:40,581 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:11:44,380 INFO uvicorn.access: 127.0.0.1:50391 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:11:44,513 INFO uvicorn.access: 127.0.0.1:56772 - "GET / HTTP/1.1" 200
+2026-07-05 03:11:44,582 INFO uvicorn.access: 127.0.0.1:56772 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:11:44,587 INFO uvicorn.access: 127.0.0.1:57255 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:11:44,593 INFO uvicorn.access: 127.0.0.1:56491 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:11:44,595 INFO uvicorn.access: 127.0.0.1:60860 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:11:44,595 INFO uvicorn.access: 127.0.0.1:65449 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:11:44,595 INFO uvicorn.access: 127.0.0.1:55678 - "GET /_next/static/chunks/1wkeg-nsditbs.js HTTP/1.1" 200
+2026-07-05 03:11:44,608 INFO uvicorn.access: 127.0.0.1:56772 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:11:44,625 INFO uvicorn.access: 127.0.0.1:57255 - "GET /_next/static/chunks/11i4-6tomnj4f.js HTTP/1.1" 200
+2026-07-05 03:11:44,708 INFO uvicorn.access: 127.0.0.1:57255 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:11:45,198 INFO uvicorn.access: 127.0.0.1:61232 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:11:45,247 INFO uvicorn.access: 127.0.0.1:61232 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:11:53,368 ERROR root: Get documents error: 'RustBindingsAPI' object has no attribute 'bindings'
+2026-07-05 03:11:53,872 INFO uvicorn.access: 127.0.0.1:61232 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:11:53,880 INFO uvicorn.access: 127.0.0.1:62961 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:11:53,880 INFO uvicorn.access: 127.0.0.1:54367 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:11:53,884 INFO uvicorn.access: 127.0.0.1:61232 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:12:45,799 INFO uvicorn.error: Started server process [9588]
+2026-07-05 03:12:45,801 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:12:45,801 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:12:45,804 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:12:48,832 INFO uvicorn.access: 127.0.0.1:60161 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:12:48,968 INFO uvicorn.access: 127.0.0.1:50887 - "GET / HTTP/1.1" 200
+2026-07-05 03:12:49,036 INFO uvicorn.access: 127.0.0.1:50887 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:12:49,038 INFO uvicorn.access: 127.0.0.1:58495 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:12:49,045 INFO uvicorn.access: 127.0.0.1:49731 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:12:49,048 INFO uvicorn.access: 127.0.0.1:63975 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:12:49,048 INFO uvicorn.access: 127.0.0.1:49921 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:12:49,048 INFO uvicorn.access: 127.0.0.1:64461 - "GET /_next/static/chunks/1wkeg-nsditbs.js HTTP/1.1" 200
+2026-07-05 03:12:49,065 INFO uvicorn.access: 127.0.0.1:58495 - "GET /_next/static/chunks/11i4-6tomnj4f.js HTTP/1.1" 200
+2026-07-05 03:12:49,069 INFO uvicorn.access: 127.0.0.1:50887 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:12:49,289 INFO uvicorn.access: 127.0.0.1:58495 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:12:49,684 INFO uvicorn.access: 127.0.0.1:55682 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:12:49,904 INFO uvicorn.access: 127.0.0.1:55682 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:13:06,581 ERROR root: Get documents error: Could not connect to tenant default_tenant. Are you sure it exists?
+2026-07-05 03:13:06,589 INFO uvicorn.access: 127.0.0.1:55682 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:13:06,597 INFO uvicorn.access: 127.0.0.1:61065 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:13:06,599 INFO uvicorn.access: 127.0.0.1:59603 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:13:54,925 INFO uvicorn.access: 127.0.0.1:65163 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:14:01,170 INFO uvicorn.access: 127.0.0.1:54055 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:14:23,474 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:14:24,269 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:14:27,600 INFO uvicorn.access: 127.0.0.1:54055 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:14:27,640 INFO uvicorn.access: 127.0.0.1:54055 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:15:42,850 INFO uvicorn.access: 127.0.0.1:53808 - "POST /api/upload HTTP/1.1" 200
+2026-07-05 03:15:42,880 INFO uvicorn.access: 127.0.0.1:53808 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 03:15:51,918 INFO uvicorn.access: 127.0.0.1:59452 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:16:22,274 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:16:30,469 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:16:31,772 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:16:47,731 INFO uvicorn.access: 127.0.0.1:59452 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:16:47,772 INFO uvicorn.access: 127.0.0.1:59452 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:18:30,395 INFO uvicorn.access: 127.0.0.1:51781 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:19:45,010 INFO uvicorn.access: 127.0.0.1:52075 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:19:55,076 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:19:59,026 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:20:00,410 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:20:05,389 INFO uvicorn.access: 127.0.0.1:52075 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:20:05,427 INFO uvicorn.access: 127.0.0.1:52075 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:20:43,222 INFO uvicorn.access: 127.0.0.1:63413 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:21:08,829 INFO uvicorn.access: 127.0.0.1:58824 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:21:22,021 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:21:25,549 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:21:26,603 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:21:39,218 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:21:40,545 INFO uvicorn.access: 127.0.0.1:58824 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:21:40,588 INFO uvicorn.access: 127.0.0.1:58824 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:22:07,296 INFO uvicorn.access: 127.0.0.1:64604 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:23:02,100 INFO uvicorn.access: 127.0.0.1:59791 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 03:23:02,114 INFO uvicorn.access: 127.0.0.1:59791 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:23:31,814 INFO uvicorn.access: 127.0.0.1:52963 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:23:42,919 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:23:47,816 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:23:50,051 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:24:08,953 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:24:10,244 INFO uvicorn.access: 127.0.0.1:52963 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:24:10,281 INFO uvicorn.access: 127.0.0.1:52963 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:27:22,499 INFO uvicorn.error: Started server process [11152]
+2026-07-05 03:27:22,499 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:27:22,499 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:27:22,507 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:27:25,827 INFO uvicorn.access: 127.0.0.1:51953 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:27:25,953 INFO uvicorn.access: 127.0.0.1:57956 - "GET / HTTP/1.1" 200
+2026-07-05 03:27:26,035 INFO uvicorn.access: 127.0.0.1:57956 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:27:26,038 INFO uvicorn.access: 127.0.0.1:49875 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:27:26,040 INFO uvicorn.access: 127.0.0.1:54377 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:27:26,043 INFO uvicorn.access: 127.0.0.1:61802 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:27:26,048 INFO uvicorn.access: 127.0.0.1:54002 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:27:26,049 INFO uvicorn.access: 127.0.0.1:65046 - "GET /_next/static/chunks/1wkeg-nsditbs.js HTTP/1.1" 200
+2026-07-05 03:27:26,068 INFO uvicorn.access: 127.0.0.1:49875 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:27:26,070 INFO uvicorn.access: 127.0.0.1:57956 - "GET /_next/static/chunks/11i4-6tomnj4f.js HTTP/1.1" 200
+2026-07-05 03:27:26,155 INFO uvicorn.access: 127.0.0.1:57956 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:27:26,625 INFO uvicorn.access: 127.0.0.1:62273 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:27:26,656 INFO uvicorn.access: 127.0.0.1:62273 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:27:35,717 INFO uvicorn.access: 127.0.0.1:62273 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 03:27:35,727 INFO uvicorn.access: 127.0.0.1:53161 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:27:35,729 INFO uvicorn.access: 127.0.0.1:53823 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:27:35,732 INFO uvicorn.access: 127.0.0.1:53161 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:28:12,487 INFO uvicorn.access: 127.0.0.1:58926 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:28:22,808 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:28:25,010 INFO uvicorn.access: 127.0.0.1:58926 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:28:25,052 INFO uvicorn.access: 127.0.0.1:58926 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:32:01,655 INFO uvicorn.error: Started server process [21068]
+2026-07-05 03:32:01,656 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:32:01,656 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:32:01,656 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:32:04,933 INFO uvicorn.access: 127.0.0.1:53085 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:32:05,128 INFO uvicorn.access: 127.0.0.1:49214 - "GET / HTTP/1.1" 200
+2026-07-05 03:32:05,357 INFO uvicorn.access: 127.0.0.1:49214 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:32:05,365 INFO uvicorn.access: 127.0.0.1:58308 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:32:05,369 INFO uvicorn.access: 127.0.0.1:59016 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:32:05,372 INFO uvicorn.access: 127.0.0.1:63342 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:32:05,372 INFO uvicorn.access: 127.0.0.1:55678 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:32:05,381 INFO uvicorn.access: 127.0.0.1:55680 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:32:05,398 INFO uvicorn.access: 127.0.0.1:58308 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:32:05,399 INFO uvicorn.access: 127.0.0.1:55678 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:32:05,491 INFO uvicorn.access: 127.0.0.1:64521 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:32:06,020 INFO uvicorn.access: 127.0.0.1:64521 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:32:06,068 INFO uvicorn.access: 127.0.0.1:64521 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:32:26,639 ERROR root: Get documents error: 'RustBindingsAPI' object has no attribute 'bindings'
+2026-07-05 03:32:26,725 INFO uvicorn.access: 127.0.0.1:64521 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:32:27,135 INFO uvicorn.access: 127.0.0.1:51451 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:32:27,138 INFO uvicorn.access: 127.0.0.1:65218 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:32:27,142 INFO uvicorn.access: 127.0.0.1:52396 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:32:27,144 INFO uvicorn.access: 127.0.0.1:51451 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:40:32,348 INFO uvicorn.error: Started server process [33344]
+2026-07-05 03:40:32,348 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:40:32,348 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:40:32,352 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:40:35,361 INFO uvicorn.access: 127.0.0.1:62768 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:40:35,503 INFO uvicorn.access: 127.0.0.1:54353 - "GET / HTTP/1.1" 200
+2026-07-05 03:40:35,578 INFO uvicorn.access: 127.0.0.1:54353 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:40:35,584 INFO uvicorn.access: 127.0.0.1:52635 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:40:35,584 INFO uvicorn.access: 127.0.0.1:60515 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:40:35,584 INFO uvicorn.access: 127.0.0.1:57276 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:40:35,584 INFO uvicorn.access: 127.0.0.1:60744 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:40:35,593 INFO uvicorn.access: 127.0.0.1:51314 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:40:35,608 INFO uvicorn.access: 127.0.0.1:54353 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:40:35,611 INFO uvicorn.access: 127.0.0.1:52635 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:40:35,710 INFO uvicorn.access: 127.0.0.1:52635 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:40:36,376 INFO uvicorn.access: 127.0.0.1:61144 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:40:36,804 INFO uvicorn.access: 127.0.0.1:61144 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:40:51,726 ERROR root: Get documents error: 'RustBindingsAPI' object has no attribute 'bindings'
+2026-07-05 03:40:52,148 INFO uvicorn.access: 127.0.0.1:61144 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:40:52,160 INFO uvicorn.access: 127.0.0.1:54716 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:40:52,167 INFO uvicorn.access: 127.0.0.1:63095 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:40:52,185 INFO uvicorn.access: 127.0.0.1:54479 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:40:52,185 INFO uvicorn.access: 127.0.0.1:61144 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:40:52,191 INFO uvicorn.access: 127.0.0.1:54716 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:40:54,969 INFO uvicorn.access: 127.0.0.1:54716 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:41:09,256 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:41:10,080 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:41:14,569 INFO uvicorn.access: 127.0.0.1:61144 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:41:14,602 INFO uvicorn.access: 127.0.0.1:61144 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:15,445 INFO uvicorn.error: Started server process [34304]
+2026-07-05 03:43:15,445 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:43:15,445 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:43:15,451 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:43:18,387 INFO uvicorn.access: 127.0.0.1:63238 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:43:18,525 INFO uvicorn.access: 127.0.0.1:63818 - "GET / HTTP/1.1" 200
+2026-07-05 03:43:18,599 INFO uvicorn.access: 127.0.0.1:63818 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:43:18,599 INFO uvicorn.access: 127.0.0.1:51304 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:43:18,603 INFO uvicorn.access: 127.0.0.1:55780 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:43:18,606 INFO uvicorn.access: 127.0.0.1:58490 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:43:18,606 INFO uvicorn.access: 127.0.0.1:49669 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:43:18,606 INFO uvicorn.access: 127.0.0.1:62024 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:43:18,622 INFO uvicorn.access: 127.0.0.1:63818 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:43:18,622 INFO uvicorn.access: 127.0.0.1:62024 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:43:18,731 INFO uvicorn.access: 127.0.0.1:62024 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:43:19,895 INFO uvicorn.access: 127.0.0.1:52583 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:43:19,897 INFO uvicorn.access: 127.0.0.1:51307 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:43:34,766 ERROR root: Get documents error: Could not connect to tenant default_tenant. Are you sure it exists?
+2026-07-05 03:43:34,770 INFO uvicorn.access: 127.0.0.1:51307 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:43:34,776 INFO uvicorn.access: 127.0.0.1:52583 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:34,789 INFO uvicorn.access: 127.0.0.1:60740 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:43:34,805 INFO uvicorn.access: 127.0.0.1:54642 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:43:34,814 INFO uvicorn.access: 127.0.0.1:63068 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:43:34,817 INFO uvicorn.access: 127.0.0.1:52583 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:43:41,001 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:43:41,982 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:43:46,499 INFO uvicorn.access: 127.0.0.1:54642 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:46,537 INFO uvicorn.access: 127.0.0.1:54642 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:49,170 INFO uvicorn.access: 127.0.0.1:54642 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:43:50,994 INFO uvicorn.access: 127.0.0.1:62609 - "DELETE /api/conversations/a3ea60e7758941b78b066595443dd566 HTTP/1.1" 200
+2026-07-05 03:43:51,004 INFO uvicorn.access: 127.0.0.1:62609 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:51,767 INFO uvicorn.access: 127.0.0.1:62609 - "DELETE /api/conversations/008fd2e6eaee480ba5cf311e673078b3 HTTP/1.1" 200
+2026-07-05 03:43:51,778 INFO uvicorn.access: 127.0.0.1:62609 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:52,229 INFO uvicorn.access: 127.0.0.1:62609 - "DELETE /api/conversations/58d429bef22d4c10bde5d060a43381b1 HTTP/1.1" 200
+2026-07-05 03:43:52,238 INFO uvicorn.access: 127.0.0.1:62609 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:54,125 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:43:54,841 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:43:59,170 INFO uvicorn.access: 127.0.0.1:54642 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:43:59,202 INFO uvicorn.access: 127.0.0.1:54642 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:44:33,200 INFO uvicorn.access: 127.0.0.1:51923 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:44:46,167 INFO uvicorn.access: 127.0.0.1:50896 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:45:01,514 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:45:02,311 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:45:05,244 INFO uvicorn.access: 127.0.0.1:50896 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:45:05,283 INFO uvicorn.access: 127.0.0.1:50896 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:45:38,174 INFO uvicorn.error: Started server process [20264]
+2026-07-05 03:45:38,178 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:45:38,179 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:45:38,181 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:45:41,133 INFO uvicorn.access: 127.0.0.1:49390 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:45:41,274 INFO uvicorn.access: 127.0.0.1:49669 - "GET / HTTP/1.1" 200
+2026-07-05 03:45:41,338 INFO uvicorn.access: 127.0.0.1:49669 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:45:41,349 INFO uvicorn.access: 127.0.0.1:52741 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:45:41,349 INFO uvicorn.access: 127.0.0.1:58000 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:45:41,355 INFO uvicorn.access: 127.0.0.1:50240 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:45:41,355 INFO uvicorn.access: 127.0.0.1:50861 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:45:41,355 INFO uvicorn.access: 127.0.0.1:62952 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:45:41,371 INFO uvicorn.access: 127.0.0.1:49669 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:45:41,373 INFO uvicorn.access: 127.0.0.1:52741 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:45:41,577 INFO uvicorn.access: 127.0.0.1:52741 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:45:42,182 INFO uvicorn.access: 127.0.0.1:55678 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:45:42,480 INFO uvicorn.access: 127.0.0.1:55678 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:45:57,253 ERROR root: Get documents error: 'C:\\Users\\diaba\\.gemini\\antigravity\\scratch\\agentic_crag_app\\backend\\chroma_db'
+2026-07-05 03:45:57,255 INFO uvicorn.access: 127.0.0.1:55678 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:45:57,675 INFO uvicorn.access: 127.0.0.1:54728 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:45:57,690 INFO uvicorn.access: 127.0.0.1:63625 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:45:57,701 INFO uvicorn.access: 127.0.0.1:53692 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:45:57,705 INFO uvicorn.access: 127.0.0.1:60886 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:45:57,708 INFO uvicorn.access: 127.0.0.1:54728 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:46:04,174 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:46:05,067 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:46:14,101 INFO uvicorn.access: 127.0.0.1:53692 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:46:14,138 INFO uvicorn.access: 127.0.0.1:53692 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:46:19,242 INFO uvicorn.access: 127.0.0.1:60771 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:48:06,755 INFO uvicorn.error: Started server process [32632]
+2026-07-05 03:48:06,755 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:48:06,755 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:48:06,762 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:48:09,726 INFO uvicorn.access: 127.0.0.1:55678 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:48:09,847 INFO uvicorn.access: 127.0.0.1:59871 - "GET / HTTP/1.1" 200
+2026-07-05 03:48:09,919 INFO uvicorn.access: 127.0.0.1:59871 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:48:09,928 INFO uvicorn.access: 127.0.0.1:63300 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:48:09,928 INFO uvicorn.access: 127.0.0.1:52431 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:48:09,930 INFO uvicorn.access: 127.0.0.1:51851 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:48:09,930 INFO uvicorn.access: 127.0.0.1:59300 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:48:09,930 INFO uvicorn.access: 127.0.0.1:54382 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:48:09,953 INFO uvicorn.access: 127.0.0.1:59871 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:48:09,953 INFO uvicorn.access: 127.0.0.1:63300 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:48:10,036 INFO uvicorn.access: 127.0.0.1:59871 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:48:11,066 INFO uvicorn.access: 127.0.0.1:53225 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:48:11,066 INFO uvicorn.access: 127.0.0.1:51412 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:48:26,689 ERROR root: Get documents error: 'C:\\Users\\diaba\\.gemini\\antigravity\\scratch\\agentic_crag_app\\backend\\chroma_db'
+2026-07-05 03:48:26,689 INFO uvicorn.access: 127.0.0.1:51412 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:48:27,136 INFO uvicorn.access: 127.0.0.1:53225 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:48:27,145 INFO uvicorn.access: 127.0.0.1:54296 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:48:27,173 INFO uvicorn.access: 127.0.0.1:65296 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:48:27,178 INFO uvicorn.access: 127.0.0.1:57438 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:48:27,182 INFO uvicorn.access: 127.0.0.1:53225 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:48:35,546 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:48:36,353 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:48:40,639 INFO uvicorn.access: 127.0.0.1:65296 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:48:40,683 INFO uvicorn.access: 127.0.0.1:65296 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:49:01,049 INFO uvicorn.access: 127.0.0.1:51395 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:49:16,703 INFO uvicorn.access: 127.0.0.1:53831 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:49:21,773 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:49:31,955 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:49:32,719 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:49:37,124 INFO uvicorn.access: 127.0.0.1:53831 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:49:37,168 INFO uvicorn.access: 127.0.0.1:53831 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:49:44,659 INFO uvicorn.access: 127.0.0.1:63014 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:49:50,390 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:49:51,169 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:50:05,531 INFO uvicorn.access: 127.0.0.1:60027 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:50:05,566 INFO uvicorn.access: 127.0.0.1:60027 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:53:40,846 INFO uvicorn.error: Started server process [2132]
+2026-07-05 03:53:40,846 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 03:53:40,849 INFO uvicorn.error: Application startup complete.
+2026-07-05 03:53:40,853 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 03:53:44,016 INFO uvicorn.access: 127.0.0.1:60600 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 03:53:44,173 INFO uvicorn.access: 127.0.0.1:60976 - "GET / HTTP/1.1" 200
+2026-07-05 03:53:44,264 INFO uvicorn.access: 127.0.0.1:60976 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 03:53:44,280 INFO uvicorn.access: 127.0.0.1:51675 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 03:53:44,288 INFO uvicorn.access: 127.0.0.1:51050 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 03:53:44,289 INFO uvicorn.access: 127.0.0.1:62223 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 03:53:44,294 INFO uvicorn.access: 127.0.0.1:51821 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 03:53:44,297 INFO uvicorn.access: 127.0.0.1:55678 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 03:53:44,316 INFO uvicorn.access: 127.0.0.1:60976 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 03:53:44,316 INFO uvicorn.access: 127.0.0.1:51675 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 03:53:44,394 INFO uvicorn.access: 127.0.0.1:51675 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 03:53:45,179 INFO uvicorn.access: 127.0.0.1:50342 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 03:53:45,695 INFO uvicorn.access: 127.0.0.1:50342 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 03:54:01,958 ERROR root: Get documents error: Could not connect to tenant default_tenant. Are you sure it exists?
+2026-07-05 03:54:01,970 INFO uvicorn.access: 127.0.0.1:50342 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 03:54:01,991 INFO uvicorn.access: 127.0.0.1:63784 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:54:01,995 INFO uvicorn.access: 127.0.0.1:60110 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:54:02,013 INFO uvicorn.access: 127.0.0.1:63624 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:54:02,018 INFO uvicorn.access: 127.0.0.1:63784 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:54:02,020 INFO uvicorn.access: 127.0.0.1:52272 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 03:54:02,024 INFO uvicorn.access: 127.0.0.1:60110 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 03:54:08,488 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:54:09,338 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:54:14,022 INFO uvicorn.access: 127.0.0.1:63624 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:54:14,065 INFO uvicorn.access: 127.0.0.1:63624 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 03:55:04,774 INFO uvicorn.access: 127.0.0.1:50191 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 03:55:27,897 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:55:33,514 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:55:34,309 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 03:55:38,220 INFO uvicorn.access: 127.0.0.1:50191 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 03:55:38,258 INFO uvicorn.access: 127.0.0.1:50191 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:07:36,076 INFO uvicorn.error: Started server process [27468]
+2026-07-05 04:07:36,079 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 04:07:36,079 INFO uvicorn.error: Application startup complete.
+2026-07-05 04:07:36,079 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 04:07:39,044 INFO uvicorn.access: 127.0.0.1:51527 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 04:07:39,155 INFO uvicorn.access: 127.0.0.1:49723 - "GET / HTTP/1.1" 200
+2026-07-05 04:07:39,407 INFO uvicorn.access: 127.0.0.1:49723 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 04:07:39,412 INFO uvicorn.access: 127.0.0.1:56484 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 04:07:39,415 INFO uvicorn.access: 127.0.0.1:50068 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 04:07:39,423 INFO uvicorn.access: 127.0.0.1:51286 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 04:07:39,423 INFO uvicorn.access: 127.0.0.1:61514 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 04:07:39,425 INFO uvicorn.access: 127.0.0.1:55798 - "GET /_next/static/chunks/1kysz1-w4oj37.js HTTP/1.1" 200
+2026-07-05 04:07:39,444 INFO uvicorn.access: 127.0.0.1:55798 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 04:07:39,447 INFO uvicorn.access: 127.0.0.1:49723 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 04:07:39,552 INFO uvicorn.access: 127.0.0.1:55798 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 04:07:40,960 INFO uvicorn.access: 127.0.0.1:63057 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 04:07:40,965 INFO uvicorn.access: 127.0.0.1:58649 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 04:07:54,331 ERROR root: Get documents error: 'C:\\Users\\diaba\\.gemini\\antigravity\\scratch\\agentic_crag_app\\backend\\chroma_db'
+2026-07-05 04:07:54,331 INFO uvicorn.access: 127.0.0.1:58649 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 04:07:54,742 INFO uvicorn.access: 127.0.0.1:63057 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:07:54,750 INFO uvicorn.access: 127.0.0.1:60370 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 04:07:54,753 INFO uvicorn.access: 127.0.0.1:62008 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 04:08:59,670 INFO uvicorn.access: 127.0.0.1:62498 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 04:12:02,857 INFO uvicorn.error: Started server process [35448]
+2026-07-05 04:12:02,857 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 04:12:02,857 INFO uvicorn.error: Application startup complete.
+2026-07-05 04:12:02,867 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+2026-07-05 04:12:05,857 INFO uvicorn.access: 127.0.0.1:62933 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 04:12:05,979 INFO uvicorn.access: 127.0.0.1:60876 - "GET / HTTP/1.1" 200
+2026-07-05 04:12:06,215 INFO uvicorn.access: 127.0.0.1:60876 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 04:12:06,218 INFO uvicorn.access: 127.0.0.1:50104 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 04:12:06,221 INFO uvicorn.access: 127.0.0.1:58045 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 04:12:06,224 INFO uvicorn.access: 127.0.0.1:55998 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 04:12:06,227 INFO uvicorn.access: 127.0.0.1:60118 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 04:12:06,230 INFO uvicorn.access: 127.0.0.1:65144 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 04:12:06,247 INFO uvicorn.access: 127.0.0.1:60876 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 04:12:06,348 INFO uvicorn.access: 127.0.0.1:60118 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 04:12:07,611 INFO uvicorn.access: 127.0.0.1:51870 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 04:12:07,613 INFO uvicorn.access: 127.0.0.1:59373 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 04:12:22,679 INFO uvicorn.access: 127.0.0.1:59373 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 04:12:22,685 INFO uvicorn.access: 127.0.0.1:51870 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:22,695 INFO uvicorn.access: 127.0.0.1:58997 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 04:12:22,695 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 04:12:27,147 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/4d3c9c56b46e4dca90d20c2a6a389642 HTTP/1.1" 200
+2026-07-05 04:12:27,152 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:27,335 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/4cf529899671486dbf9aef68f0eccbda HTTP/1.1" 200
+2026-07-05 04:12:27,350 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:27,535 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/917ce2fb74874902b839410f97ed884c HTTP/1.1" 200
+2026-07-05 04:12:27,550 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:27,732 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/9ac3ca5bb5384c1a967767a32d19a93b HTTP/1.1" 200
+2026-07-05 04:12:27,742 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:27,948 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/dada3a8803b64bb683fda5e09fb79690 HTTP/1.1" 200
+2026-07-05 04:12:27,955 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:28,123 INFO uvicorn.access: 127.0.0.1:54752 - "DELETE /api/conversations/102af633bebc4beaba6107867bde8636 HTTP/1.1" 200
+2026-07-05 04:12:28,133 INFO uvicorn.access: 127.0.0.1:54752 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:33,259 INFO uvicorn.access: 127.0.0.1:57370 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 04:12:48,551 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 04:12:49,336 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 04:12:53,540 INFO uvicorn.access: 127.0.0.1:57370 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 04:12:53,567 INFO uvicorn.access: 127.0.0.1:57370 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:13:09,725 INFO uvicorn.error: Started server process [27200]
+2026-07-05 04:13:09,725 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 04:13:09,733 INFO uvicorn.error: Application startup complete.
+2026-07-05 04:13:09,734 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 04:13:12,705 INFO uvicorn.access: 127.0.0.1:63617 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 04:13:12,831 INFO uvicorn.access: 127.0.0.1:49732 - "GET / HTTP/1.1" 200
+2026-07-05 04:13:13,030 INFO uvicorn.access: 127.0.0.1:49732 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 04:13:13,033 INFO uvicorn.access: 127.0.0.1:56312 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 04:13:13,034 INFO uvicorn.access: 127.0.0.1:56459 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 04:13:13,037 INFO uvicorn.access: 127.0.0.1:59070 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 04:13:13,037 INFO uvicorn.access: 127.0.0.1:51138 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 04:13:13,037 INFO uvicorn.access: 127.0.0.1:59088 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 04:13:13,064 INFO uvicorn.access: 127.0.0.1:51138 - "GET /_next/static/chunks/2la-ztznwh91s.js HTTP/1.1" 200
+2026-07-05 04:13:13,071 INFO uvicorn.access: 127.0.0.1:59088 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 04:13:13,937 INFO uvicorn.access: 127.0.0.1:49730 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 04:13:13,978 INFO uvicorn.access: 127.0.0.1:49730 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 04:13:29,834 ERROR root: Get documents error: 'C:\\Users\\diaba\\.gemini\\antigravity\\scratch\\agentic_crag_app\\backend\\chroma_db'
+2026-07-05 04:13:29,834 INFO uvicorn.access: 127.0.0.1:49730 - "GET /api/documents HTTP/1.1" 500
+2026-07-05 04:13:29,848 INFO uvicorn.access: 127.0.0.1:57894 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 04:13:29,849 INFO uvicorn.access: 127.0.0.1:59272 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 04:13:29,852 INFO uvicorn.access: 127.0.0.1:63929 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 10:46:33,351 INFO uvicorn.error: Started server process [20216]
+2026-07-05 10:46:33,352 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 10:46:33,353 INFO uvicorn.error: Application startup complete.
+2026-07-05 10:46:33,354 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 10:46:37,274 INFO uvicorn.access: 127.0.0.1:58156 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 10:46:37,415 INFO uvicorn.access: 127.0.0.1:64594 - "GET / HTTP/1.1" 200
+2026-07-05 10:46:37,611 INFO uvicorn.access: 127.0.0.1:60984 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 10:46:37,617 INFO uvicorn.access: 127.0.0.1:65299 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 10:46:37,623 INFO uvicorn.access: 127.0.0.1:64594 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 10:46:37,630 INFO uvicorn.access: 127.0.0.1:58324 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 10:46:37,633 INFO uvicorn.access: 127.0.0.1:50591 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 10:46:37,635 INFO uvicorn.access: 127.0.0.1:62195 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 10:46:37,664 INFO uvicorn.access: 127.0.0.1:60984 - "GET /_next/static/chunks/3vbfgucne4bnl.js HTTP/1.1" 200
+2026-07-05 10:46:38,193 INFO uvicorn.access: 127.0.0.1:57083 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 10:46:39,015 INFO uvicorn.access: 127.0.0.1:57083 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 10:46:39,016 INFO uvicorn.access: 127.0.0.1:61522 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 10:46:45,734 INFO uvicorn.access: 127.0.0.1:57083 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 10:46:45,739 INFO uvicorn.access: 127.0.0.1:61522 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:46:45,747 INFO uvicorn.access: 127.0.0.1:59519 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 10:46:45,751 INFO uvicorn.access: 127.0.0.1:57114 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 10:47:48,588 INFO uvicorn.error: Started server process [3220]
+2026-07-05 10:47:48,589 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 10:47:48,590 INFO uvicorn.error: Application startup complete.
+2026-07-05 10:47:48,593 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 10:47:51,353 INFO uvicorn.access: 127.0.0.1:59558 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 10:47:51,472 INFO uvicorn.access: 127.0.0.1:59062 - "GET / HTTP/1.1" 200
+2026-07-05 10:47:51,520 INFO uvicorn.access: 127.0.0.1:59062 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 10:47:51,524 INFO uvicorn.access: 127.0.0.1:54384 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 10:47:51,529 INFO uvicorn.access: 127.0.0.1:57468 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 10:47:51,530 INFO uvicorn.access: 127.0.0.1:61473 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 10:47:51,533 INFO uvicorn.access: 127.0.0.1:62003 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 10:47:51,534 INFO uvicorn.access: 127.0.0.1:62203 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 10:47:51,547 INFO uvicorn.access: 127.0.0.1:59062 - "GET /_next/static/chunks/3vbfgucne4bnl.js HTTP/1.1" 200
+2026-07-05 10:47:51,718 INFO uvicorn.access: 127.0.0.1:59062 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 10:47:52,435 INFO uvicorn.access: 127.0.0.1:59423 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 10:47:52,635 INFO uvicorn.access: 127.0.0.1:59423 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 10:47:57,040 INFO uvicorn.access: 127.0.0.1:59423 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 10:47:57,054 INFO uvicorn.access: 127.0.0.1:64950 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:47:57,058 INFO uvicorn.access: 127.0.0.1:59060 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 10:47:57,064 INFO uvicorn.access: 127.0.0.1:56430 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 10:48:05,071 INFO uvicorn.access: 127.0.0.1:60177 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 10:48:10,126 INFO openai._base_client: Retrying request to /chat/completions in 0.451661 seconds
+2026-07-05 10:48:14,616 INFO openai._base_client: Retrying request to /chat/completions in 0.879239 seconds
+2026-07-05 10:49:00,275 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:01,031 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:05,618 INFO uvicorn.access: 127.0.0.1:60177 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 10:49:05,656 INFO uvicorn.access: 127.0.0.1:60177 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:49:16,314 INFO uvicorn.access: 127.0.0.1:59033 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 10:49:18,967 INFO uvicorn.access: 127.0.0.1:50560 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 10:49:18,996 INFO uvicorn.access: 127.0.0.1:50560 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:49:28,352 INFO uvicorn.access: 127.0.0.1:58442 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 10:49:33,295 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:39,222 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:46,853 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:47,572 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 10:49:56,283 INFO uvicorn.access: 127.0.0.1:58123 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 10:49:56,311 INFO uvicorn.access: 127.0.0.1:58123 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:56:25,824 INFO uvicorn.access: 127.0.0.1:56561 - "DELETE /api/conversations/4067b1992abe4d1f986d6d39649a3a6e HTTP/1.1" 200
+2026-07-05 10:56:25,833 INFO uvicorn.access: 127.0.0.1:56561 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 10:56:26,982 INFO uvicorn.access: 127.0.0.1:56561 - "DELETE /api/conversations/d2b0b61448164f2280b3d92c370ee519 HTTP/1.1" 200
+2026-07-05 10:56:26,992 INFO uvicorn.access: 127.0.0.1:56561 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 12:42:42,002 INFO uvicorn.error: Started server process [15732]
+2026-07-05 12:42:42,002 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 12:42:42,006 INFO uvicorn.error: Application startup complete.
+2026-07-05 12:42:42,008 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 12:42:44,904 INFO uvicorn.access: 127.0.0.1:54981 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 12:42:45,057 INFO uvicorn.access: 127.0.0.1:62995 - "GET / HTTP/1.1" 200
+2026-07-05 12:42:45,375 INFO uvicorn.access: 127.0.0.1:62995 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 12:42:45,375 INFO uvicorn.access: 127.0.0.1:54293 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 12:42:45,386 INFO uvicorn.access: 127.0.0.1:57113 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 12:42:45,389 INFO uvicorn.access: 127.0.0.1:63765 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 12:42:45,391 INFO uvicorn.access: 127.0.0.1:57132 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 12:42:45,393 INFO uvicorn.access: 127.0.0.1:49153 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 12:42:45,408 INFO uvicorn.access: 127.0.0.1:62995 - "GET /_next/static/chunks/2u3k5lzcrmbjy.js HTTP/1.1" 200
+2026-07-05 12:42:45,454 INFO uvicorn.access: 127.0.0.1:54293 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 12:42:46,318 INFO uvicorn.access: 127.0.0.1:62698 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 12:42:46,451 INFO uvicorn.access: 127.0.0.1:50937 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 12:42:51,830 INFO uvicorn.access: 127.0.0.1:50937 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 12:42:51,843 INFO uvicorn.access: 127.0.0.1:62698 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 12:42:51,844 INFO uvicorn.access: 127.0.0.1:49696 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 12:42:51,851 INFO uvicorn.access: 127.0.0.1:55803 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 12:43:00,151 INFO uvicorn.access: 127.0.0.1:59437 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 12:43:21,087 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 12:43:21,943 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 12:43:28,065 INFO uvicorn.access: 127.0.0.1:59437 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 12:43:28,108 INFO uvicorn.access: 127.0.0.1:59437 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:19:29,845 INFO uvicorn.error: Started server process [7692]
+2026-07-05 13:19:29,846 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:19:29,846 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:19:29,846 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 13:19:32,809 INFO uvicorn.access: 127.0.0.1:52240 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:19:32,943 INFO uvicorn.access: 127.0.0.1:54254 - "GET / HTTP/1.1" 200
+2026-07-05 13:19:33,256 INFO uvicorn.access: 127.0.0.1:54254 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:19:33,256 INFO uvicorn.access: 127.0.0.1:57736 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:19:33,272 INFO uvicorn.access: 127.0.0.1:52423 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:19:33,272 INFO uvicorn.access: 127.0.0.1:52172 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:19:33,272 INFO uvicorn.access: 127.0.0.1:57375 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:19:33,272 INFO uvicorn.access: 127.0.0.1:63607 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:19:33,291 INFO uvicorn.access: 127.0.0.1:54254 - "GET /_next/static/chunks/3sm3usaev5vsw.js HTTP/1.1" 200
+2026-07-05 13:19:33,411 INFO uvicorn.access: 127.0.0.1:52172 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:19:34,067 INFO uvicorn.access: 127.0.0.1:54884 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:19:34,224 INFO uvicorn.access: 127.0.0.1:54884 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:19:41,695 INFO uvicorn.access: 127.0.0.1:54884 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:19:41,752 INFO uvicorn.access: 127.0.0.1:62463 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:19:41,759 INFO uvicorn.access: 127.0.0.1:53073 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:19:41,767 INFO uvicorn.access: 127.0.0.1:59305 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:19:41,770 INFO uvicorn.access: 127.0.0.1:62463 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:19:49,097 INFO uvicorn.access: 127.0.0.1:55154 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:19:49,106 INFO uvicorn.access: 127.0.0.1:55154 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:20:02,877 INFO uvicorn.access: 127.0.0.1:49757 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:20:03,017 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:20:03,226 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/ornith:generateContent "HTTP/1.1 400 Bad Request"
+2026-07-05 13:20:04,595 INFO uvicorn.access: 127.0.0.1:49757 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:20:04,631 INFO uvicorn.access: 127.0.0.1:49757 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:21:37,446 INFO uvicorn.access: 127.0.0.1:57626 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:23:36,492 INFO uvicorn.error: Started server process [33996]
+2026-07-05 13:23:36,492 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:23:36,492 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:23:36,492 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 13:23:39,544 INFO uvicorn.access: 127.0.0.1:57841 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:23:39,683 INFO uvicorn.access: 127.0.0.1:58056 - "GET / HTTP/1.1" 200
+2026-07-05 13:23:39,744 INFO uvicorn.access: 127.0.0.1:58056 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:23:39,750 INFO uvicorn.access: 127.0.0.1:63737 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:23:39,752 INFO uvicorn.access: 127.0.0.1:56898 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:23:39,759 INFO uvicorn.access: 127.0.0.1:60787 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:23:39,759 INFO uvicorn.access: 127.0.0.1:60944 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:23:39,759 INFO uvicorn.access: 127.0.0.1:57832 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:23:39,771 INFO uvicorn.access: 127.0.0.1:58056 - "GET /_next/static/chunks/3sm3usaev5vsw.js HTTP/1.1" 200
+2026-07-05 13:23:39,891 INFO uvicorn.access: 127.0.0.1:58056 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:23:41,068 INFO uvicorn.access: 127.0.0.1:58243 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:23:41,076 INFO uvicorn.access: 127.0.0.1:60648 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:23:41,680 INFO uvicorn.access: 127.0.0.1:58243 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:23:45,902 INFO uvicorn.access: 127.0.0.1:60648 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:23:45,903 INFO uvicorn.access: 127.0.0.1:51659 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:23:45,911 INFO uvicorn.access: 127.0.0.1:61558 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:23:45,931 INFO uvicorn.access: 127.0.0.1:61558 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:24:01,589 INFO uvicorn.access: 127.0.0.1:61429 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:26:37,265 INFO uvicorn.access: 127.0.0.1:58899 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:26:37,283 INFO uvicorn.access: 127.0.0.1:58899 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:26:46,104 INFO uvicorn.access: 127.0.0.1:57073 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:27:01,122 INFO uvicorn.access: 127.0.0.1:57472 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:27:01,221 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:27:01,627 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/ornith:generateContent "HTTP/1.1 404 Not Found"
+2026-07-05 13:27:02,929 INFO uvicorn.access: 127.0.0.1:57472 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:27:02,959 INFO uvicorn.access: 127.0.0.1:57472 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:27:06,201 INFO uvicorn.access: 127.0.0.1:57472 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:27:13,205 INFO uvicorn.access: 127.0.0.1:51964 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:27:13,214 INFO uvicorn.access: 127.0.0.1:51964 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:27:24,854 INFO uvicorn.access: 127.0.0.1:60413 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:27:24,950 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:27:25,186 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/ornith:generateContent "HTTP/1.1 404 Not Found"
+2026-07-05 13:27:26,443 INFO uvicorn.access: 127.0.0.1:60413 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:27:26,473 INFO uvicorn.access: 127.0.0.1:60413 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:28:10,183 INFO uvicorn.access: 127.0.0.1:50964 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:28:26,278 INFO uvicorn.access: 127.0.0.1:50561 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:34:12,263 INFO uvicorn.error: Started server process [31756]
+2026-07-05 13:34:12,264 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:34:12,267 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:34:12,271 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 13:34:15,583 INFO uvicorn.access: 127.0.0.1:52187 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:34:15,771 INFO uvicorn.access: 127.0.0.1:53750 - "GET / HTTP/1.1" 200
+2026-07-05 13:34:15,836 INFO uvicorn.access: 127.0.0.1:53750 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:34:15,853 INFO uvicorn.access: 127.0.0.1:52995 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:34:15,854 INFO uvicorn.access: 127.0.0.1:56521 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:34:15,860 INFO uvicorn.access: 127.0.0.1:59688 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:34:15,862 INFO uvicorn.access: 127.0.0.1:56262 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:34:15,868 INFO uvicorn.access: 127.0.0.1:60772 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:34:15,895 INFO uvicorn.access: 127.0.0.1:52995 - "GET /_next/static/chunks/3sm3usaev5vsw.js HTTP/1.1" 200
+2026-07-05 13:34:15,988 INFO uvicorn.access: 127.0.0.1:52995 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:34:16,512 INFO uvicorn.access: 127.0.0.1:65336 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:34:16,535 INFO uvicorn.access: 127.0.0.1:65336 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:34:24,097 INFO uvicorn.access: 127.0.0.1:65336 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:34:24,119 INFO uvicorn.access: 127.0.0.1:63134 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:34:24,122 INFO uvicorn.access: 127.0.0.1:63519 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:34:24,131 INFO uvicorn.access: 127.0.0.1:51343 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:34:27,534 INFO uvicorn.access: 127.0.0.1:51343 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:40:56,426 INFO uvicorn.error: Started server process [30428]
+2026-07-05 13:40:56,426 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:40:56,433 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:40:56,434 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8080 (Press CTRL+C to quit)
+2026-07-05 13:40:59,427 INFO uvicorn.access: 127.0.0.1:59586 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:40:59,573 INFO uvicorn.access: 127.0.0.1:62061 - "GET / HTTP/1.1" 200
+2026-07-05 13:40:59,853 INFO uvicorn.access: 127.0.0.1:62061 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:40:59,865 INFO uvicorn.access: 127.0.0.1:55153 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:40:59,875 INFO uvicorn.access: 127.0.0.1:63196 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:40:59,878 INFO uvicorn.access: 127.0.0.1:49219 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:40:59,881 INFO uvicorn.access: 127.0.0.1:57119 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:40:59,881 INFO uvicorn.access: 127.0.0.1:65098 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:40:59,893 INFO uvicorn.access: 127.0.0.1:62061 - "GET /_next/static/chunks/060zzvquob1r9.js HTTP/1.1" 200
+2026-07-05 13:41:00,006 INFO uvicorn.access: 127.0.0.1:55153 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:41:01,517 INFO uvicorn.access: 127.0.0.1:63104 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:41:01,517 INFO uvicorn.access: 127.0.0.1:49669 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:41:05,982 INFO uvicorn.access: 127.0.0.1:49669 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:41:05,995 INFO uvicorn.access: 127.0.0.1:63104 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:41:06,005 INFO uvicorn.access: 127.0.0.1:64627 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:41:06,006 INFO uvicorn.access: 127.0.0.1:49724 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:41:06,007 INFO uvicorn.access: 127.0.0.1:63104 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:41:28,328 INFO uvicorn.access: 127.0.0.1:60406 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:41:28,342 INFO uvicorn.access: 127.0.0.1:60406 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:41:28,346 INFO uvicorn.access: 127.0.0.1:60406 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:42:00,110 INFO uvicorn.access: 127.0.0.1:52140 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:42:00,122 INFO uvicorn.access: 127.0.0.1:52140 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:42:10,273 INFO uvicorn.access: 127.0.0.1:49345 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:42:50,841 INFO uvicorn.access: 127.0.0.1:64382 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:42:50,851 INFO uvicorn.access: 127.0.0.1:64382 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:44:05,956 INFO uvicorn.access: 127.0.0.1:56435 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:44:05,962 INFO uvicorn.access: 127.0.0.1:56435 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:44:12,433 INFO uvicorn.access: 127.0.0.1:54075 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:44:29,549 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 13:44:32,480 INFO httpx: HTTP Request: POST http://localhost:11434/v1/chat/completions "HTTP/1.1 200 OK"
+2026-07-05 13:44:41,717 INFO uvicorn.access: 127.0.0.1:54075 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:44:41,784 INFO uvicorn.access: 127.0.0.1:54075 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:46:48,144 INFO uvicorn.error: Started server process [33236]
+2026-07-05 13:46:48,144 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:46:48,152 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:46:48,153 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 13:46:51,159 INFO uvicorn.access: 127.0.0.1:56896 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:46:51,299 INFO uvicorn.access: 127.0.0.1:53071 - "GET / HTTP/1.1" 200
+2026-07-05 13:46:51,511 INFO uvicorn.access: 127.0.0.1:53071 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:46:51,519 INFO uvicorn.access: 127.0.0.1:55015 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:46:51,526 INFO uvicorn.access: 127.0.0.1:61729 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:46:51,526 INFO uvicorn.access: 127.0.0.1:57032 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:46:51,526 INFO uvicorn.access: 127.0.0.1:61533 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:46:51,535 INFO uvicorn.access: 127.0.0.1:62284 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:46:51,560 INFO uvicorn.access: 127.0.0.1:53071 - "GET /_next/static/chunks/0bnff43c0fc-s.js HTTP/1.1" 200
+2026-07-05 13:46:51,666 INFO uvicorn.access: 127.0.0.1:61729 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:46:52,331 INFO uvicorn.access: 127.0.0.1:56441 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:46:52,580 INFO uvicorn.access: 127.0.0.1:56441 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:46:58,158 INFO uvicorn.access: 127.0.0.1:56441 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:46:58,183 INFO uvicorn.access: 127.0.0.1:62819 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:46:58,184 INFO uvicorn.access: 127.0.0.1:54666 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:46:58,184 INFO uvicorn.access: 127.0.0.1:62819 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:46:58,191 INFO uvicorn.access: 127.0.0.1:49268 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:47:23,017 INFO uvicorn.access: 127.0.0.1:52257 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:47:23,029 INFO uvicorn.access: 127.0.0.1:52257 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:47:28,334 INFO uvicorn.access: 127.0.0.1:63384 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:47:28,345 INFO uvicorn.access: 127.0.0.1:63384 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:47:28,350 INFO uvicorn.access: 127.0.0.1:63384 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:47:58,476 INFO uvicorn.access: 127.0.0.1:50561 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:47:58,484 INFO uvicorn.access: 127.0.0.1:50561 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:48:52,621 INFO uvicorn.access: 127.0.0.1:63773 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:48:52,711 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:48:59,346 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-05 13:48:59,670 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:49:03,647 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse "HTTP/1.1 200 OK"
+2026-07-05 13:49:05,746 INFO uvicorn.access: 127.0.0.1:63773 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:49:05,798 INFO uvicorn.access: 127.0.0.1:63773 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:49:13,126 INFO uvicorn.access: 127.0.0.1:51284 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:57:49,928 INFO uvicorn.error: Started server process [34484]
+2026-07-05 13:57:49,930 INFO uvicorn.error: Waiting for application startup.
+2026-07-05 13:57:49,930 INFO uvicorn.error: Application startup complete.
+2026-07-05 13:57:49,932 INFO uvicorn.error: Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+2026-07-05 13:57:52,757 INFO uvicorn.access: 127.0.0.1:51438 - "GET /api/ping HTTP/1.1" 200
+2026-07-05 13:57:52,890 INFO uvicorn.access: 127.0.0.1:49239 - "GET / HTTP/1.1" 200
+2026-07-05 13:57:53,131 INFO uvicorn.access: 127.0.0.1:49239 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:57:53,133 INFO uvicorn.access: 127.0.0.1:56759 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:57:53,145 INFO uvicorn.access: 127.0.0.1:50789 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:57:53,148 INFO uvicorn.access: 127.0.0.1:63132 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:57:53,150 INFO uvicorn.access: 127.0.0.1:49188 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:57:53,152 INFO uvicorn.access: 127.0.0.1:59802 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:57:53,159 INFO uvicorn.access: 127.0.0.1:49239 - "GET /_next/static/chunks/0iofokt73es89.js HTTP/1.1" 200
+2026-07-05 13:57:53,282 INFO uvicorn.access: 127.0.0.1:57932 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:57:54,662 INFO uvicorn.access: 127.0.0.1:57932 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:57:54,677 INFO uvicorn.access: 127.0.0.1:59596 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:57:58,785 INFO uvicorn.access: 127.0.0.1:59596 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 13:57:58,796 INFO uvicorn.access: 127.0.0.1:57932 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:57:58,802 INFO uvicorn.access: 127.0.0.1:50822 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:57:58,805 INFO uvicorn.access: 127.0.0.1:55098 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 13:57:58,808 INFO uvicorn.access: 127.0.0.1:57932 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:58:08,409 INFO uvicorn.access: 127.0.0.1:49248 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 13:58:08,418 INFO uvicorn.access: 127.0.0.1:49248 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:58:08,425 INFO uvicorn.access: 127.0.0.1:49248 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 13:58:21,620 INFO uvicorn.access: 127.0.0.1:60016 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 13:58:24,271 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 13:58:29,008 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse "HTTP/1.1 200 OK"
+2026-07-05 13:58:31,017 INFO uvicorn.access: 127.0.0.1:60016 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 13:58:31,056 INFO uvicorn.access: 127.0.0.1:60016 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 13:59:01,751 INFO uvicorn.access: 127.0.0.1:63355 - "GET / HTTP/1.1" 200
+2026-07-05 13:59:01,860 INFO uvicorn.access: 127.0.0.1:63355 - "GET /_next/static/chunks/2hggbpfjdvbef.css HTTP/1.1" 200
+2026-07-05 13:59:01,864 INFO uvicorn.access: 127.0.0.1:62950 - "GET /_next/static/chunks/1z3bwx6zwu8cm.js HTTP/1.1" 200
+2026-07-05 13:59:01,872 INFO uvicorn.access: 127.0.0.1:63355 - "GET /_next/static/chunks/3cljl4loymf_q.js HTTP/1.1" 200
+2026-07-05 13:59:01,877 INFO uvicorn.access: 127.0.0.1:62950 - "GET /_next/static/chunks/2ag3_u64_w6zv.js HTTP/1.1" 200
+2026-07-05 13:59:01,887 INFO uvicorn.access: 127.0.0.1:63355 - "GET /_next/static/chunks/turbopack-3l_ro2tnp9-xv.js HTTP/1.1" 200
+2026-07-05 13:59:01,897 INFO uvicorn.access: 127.0.0.1:62950 - "GET /_next/static/chunks/0sz5tts5ibj-8.js HTTP/1.1" 200
+2026-07-05 13:59:01,900 INFO uvicorn.access: 127.0.0.1:63355 - "GET /_next/static/chunks/0iofokt73es89.js HTTP/1.1" 200
+2026-07-05 13:59:01,977 INFO uvicorn.access: 127.0.0.1:63355 - "GET /favicon.ico HTTP/1.1" 200
+2026-07-05 13:59:02,508 INFO uvicorn.access: 127.0.0.1:63355 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:59:02,516 INFO uvicorn.access: 127.0.0.1:63355 - "GET /favicon.ico?favicon.12hr9irrdcfs-.ico HTTP/1.1" 200
+2026-07-05 13:59:14,843 INFO uvicorn.access: 127.0.0.1:59810 - "GET /api/settings HTTP/1.1" 401
+2026-07-05 13:59:22,146 INFO uvicorn.access: 127.0.0.1:60792 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:59:22,147 INFO uvicorn.access: 127.0.0.1:60665 - "GET /api/conversations HTTP/1.1" 401
+2026-07-05 13:59:22,147 INFO uvicorn.access: 127.0.0.1:60165 - "GET /api/settings HTTP/1.1" 401
+2026-07-05 13:59:22,150 INFO uvicorn.access: 127.0.0.1:60792 - "GET /api/pricing HTTP/1.1" 401
+2026-07-05 13:59:23,220 INFO uvicorn.access: 127.0.0.1:60792 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:59:23,223 INFO uvicorn.access: 127.0.0.1:60165 - "GET /api/conversations HTTP/1.1" 401
+2026-07-05 13:59:23,224 INFO uvicorn.access: 127.0.0.1:60665 - "GET /api/settings HTTP/1.1" 401
+2026-07-05 13:59:23,226 INFO uvicorn.access: 127.0.0.1:50561 - "GET /api/pricing HTTP/1.1" 401
+2026-07-05 13:59:24,880 INFO uvicorn.access: 127.0.0.1:50561 - "POST /api/settings HTTP/1.1" 401
+2026-07-05 13:59:34,452 INFO uvicorn.access: 127.0.0.1:60161 - "GET /api/documents HTTP/1.1" 401
+2026-07-05 13:59:35,835 INFO uvicorn.access: 127.0.0.1:60161 - "GET /api/settings HTTP/1.1" 401
+2026-07-05 14:00:28,480 INFO uvicorn.access: 127.0.0.1:51181 - "GET /api/documents HTTP/1.1" 200
+2026-07-05 14:00:28,495 INFO uvicorn.access: 127.0.0.1:51181 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:00:28,501 INFO uvicorn.access: 127.0.0.1:51181 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:00:28,516 INFO uvicorn.access: 127.0.0.1:51181 - "GET /api/pricing HTTP/1.1" 200
+2026-07-05 14:00:37,258 INFO uvicorn.access: 127.0.0.1:58699 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:00:37,276 INFO uvicorn.access: 127.0.0.1:58699 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:00:37,278 INFO uvicorn.access: 127.0.0.1:63111 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:00:59,534 INFO uvicorn.access: 127.0.0.1:55473 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:00:59,550 INFO uvicorn.access: 127.0.0.1:55473 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:00:59,557 INFO uvicorn.access: 127.0.0.1:55473 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:06,054 INFO uvicorn.access: 127.0.0.1:51129 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:01:06,071 INFO uvicorn.access: 127.0.0.1:51129 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:06,081 INFO uvicorn.access: 127.0.0.1:51129 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:16,278 INFO uvicorn.access: 127.0.0.1:50560 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:01:16,293 INFO uvicorn.access: 127.0.0.1:50560 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:16,300 INFO uvicorn.access: 127.0.0.1:50560 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:18,214 INFO uvicorn.access: 127.0.0.1:50560 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:01:18,231 INFO uvicorn.access: 127.0.0.1:50560 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:18,235 INFO uvicorn.access: 127.0.0.1:55977 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:01:23,095 INFO uvicorn.access: 127.0.0.1:55977 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 14:01:24,518 INFO httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-07-05 14:01:25,865 INFO uvicorn.access: 127.0.0.1:55977 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 14:01:25,907 INFO uvicorn.access: 127.0.0.1:55977 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:04:35,259 INFO uvicorn.access: 127.0.0.1:61200 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:04:39,050 INFO uvicorn.access: 127.0.0.1:61200 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:04:39,058 INFO uvicorn.access: 127.0.0.1:61200 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:04:39,066 INFO uvicorn.access: 127.0.0.1:61200 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:04:41,498 INFO uvicorn.access: 127.0.0.1:61200 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:04:41,505 INFO uvicorn.access: 127.0.0.1:61200 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:04:41,512 INFO uvicorn.access: 127.0.0.1:53353 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:05:31,132 INFO uvicorn.access: 127.0.0.1:52878 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:05:31,141 INFO uvicorn.access: 127.0.0.1:52878 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:05:31,142 INFO uvicorn.access: 127.0.0.1:52878 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:05:40,219 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/d681487a86244af283ac48177d8be168 HTTP/1.1" 200
+2026-07-05 14:05:40,234 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:40,402 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/1d1e0fc3ba524fc791131410654e6d71 HTTP/1.1" 200
+2026-07-05 14:05:40,414 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:40,590 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/c4f78b0ef61b4b03a51848e351dfcff1 HTTP/1.1" 200
+2026-07-05 14:05:40,654 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:40,926 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/5878fb4b231749f6b931fd2ef9b8a3a7 HTTP/1.1" 200
+2026-07-05 14:05:40,944 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:41,086 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/9fc2b4888c6648a7b74d3dc7e2232a53 HTTP/1.1" 200
+2026-07-05 14:05:41,094 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:41,260 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/a628210c556e4cec8c64ada324268a1a HTTP/1.1" 200
+2026-07-05 14:05:41,276 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:41,428 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/c5e1a34d190e4c619425df4e049c608f HTTP/1.1" 200
+2026-07-05 14:05:41,437 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:41,599 INFO uvicorn.access: 127.0.0.1:51792 - "DELETE /api/conversations/3962f010ef6e479ebbeb7b4777eb15b0 HTTP/1.1" 200
+2026-07-05 14:05:41,608 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:46,054 INFO uvicorn.access: 127.0.0.1:51792 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 14:05:48,415 INFO httpx: HTTP Request: POST https://api.deepseek.com/v1/chat/completions "HTTP/1.1 401 Unauthorized"
+2026-07-05 14:05:49,736 INFO uvicorn.access: 127.0.0.1:51792 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 14:05:49,768 INFO uvicorn.access: 127.0.0.1:51792 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:06:00,639 INFO uvicorn.access: 127.0.0.1:56645 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:07:07,694 INFO uvicorn.access: 127.0.0.1:58691 - "POST /api/settings HTTP/1.1" 200
+2026-07-05 14:07:07,706 INFO uvicorn.access: 127.0.0.1:58691 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:07:07,710 INFO uvicorn.access: 127.0.0.1:58691 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:07:12,309 INFO uvicorn.access: 127.0.0.1:58691 - "POST /api/chat HTTP/1.1" 200
+2026-07-05 14:07:12,384 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 14:07:13,308 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent "HTTP/1.1 200 OK"
+2026-07-05 14:07:13,510 INFO google_genai.models: AFC is enabled with max remote calls: 10.
+2026-07-05 14:07:14,632 INFO httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse "HTTP/1.1 200 OK"
+2026-07-05 14:07:16,140 INFO uvicorn.access: 127.0.0.1:58691 - "POST /api/conversations HTTP/1.1" 200
+2026-07-05 14:07:16,174 INFO uvicorn.access: 127.0.0.1:58691 - "GET /api/conversations HTTP/1.1" 200
+2026-07-05 14:35:32,481 INFO uvicorn.access: 127.0.0.1:56788 - "GET /api/settings HTTP/1.1" 200
+2026-07-05 14:35:43,780 INFO uvicorn.access: 127.0.0.1:55660 - "GET /api/settings HTTP/1.1" 200

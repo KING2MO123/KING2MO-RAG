@@ -1,10 +1,9 @@
 import os
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_core.documents import Document
-
-CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
+# (H-3bis) Même modèle d'embeddings que le moteur (FastEmbed, multilingue).
+from vectorstore import get_embeddings, CHROMA_DB_DIR
 
 # 1. Création d'un faux guide de l'employé AcmeCorp de plusieurs pages
 handbook_content = """
@@ -57,15 +56,13 @@ def create_and_index_handbook():
     ]
 
     # 3. Vectorisation et stockage dans ChromaDB
-    print("3. Initialisation du modèle d'embeddings...")
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    
+    print("3. Initialisation du modèle d'embeddings (FastEmbed, multilingue)...")
+    embeddings = get_embeddings()
+
     print("4. Indexation des vecteurs dans ChromaDB en local...")
     # On ajoute ces nouveaux documents sans écraser la base existante
-    vectorstore = Chroma(
-        persist_directory=CHROMA_DB_DIR,
-        embedding_function=embeddings
-    )
+    from vectorstore import get_vectorstore
+    vectorstore = get_vectorstore()
     vectorstore.add_documents(documents)
     print("Félicitations ! Le guide a été découpé, converti en vecteurs et ajouté avec succès à ChromaDB !")
 

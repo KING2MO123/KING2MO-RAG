@@ -1,10 +1,12 @@
 import os
 import shutil
 from langchain_community.vectorstores import Chroma
-from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_core.documents import Document
-
-CHROMA_DB_DIR = os.path.join(os.path.dirname(__file__), "chroma_db")
+# (H-3bis) On réutilise le MÊME modèle d'embeddings que le moteur (FastEmbed,
+# multilingue). Auparavant ce script utilisait HuggingFaceEmbeddings /
+# all-MiniLM-L6-v2 : les vecteurs du seed n'étaient donc PAS comparables à
+# ceux créés par l'application (résultats de recherche incohérents).
+from vectorstore import get_embeddings, CHROMA_DB_DIR
 
 # Clear existing vector database if it exists
 if os.path.exists(CHROMA_DB_DIR):
@@ -31,9 +33,9 @@ sample_docs = [
 ]
 
 def seed_database():
-    print("Initialisation des embeddings HuggingFace...")
-    embeddings = HuggingFaceEmbeddings(model_name="all-MiniLM-L6-v2")
-    
+    print("Initialisation des embeddings FastEmbed (multilingue)...")
+    embeddings = get_embeddings()
+
     print(f"Création de la base vectorielle locale Chroma dans {CHROMA_DB_DIR}...")
     vectorstore = Chroma.from_documents(
         documents=sample_docs,

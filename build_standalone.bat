@@ -6,7 +6,7 @@ cd ..
 
 echo.
 echo Construction de l'executable Monolithe (PyInstaller)...
-cmd /c pyinstaller --onefile --windowed --name "KING2MO_Standalone" --add-data "frontend/out;frontend_out" --collect-all scipy --hidden-import scipy.special._cdflib desktop_app.py
+cmd /c pyinstaller --onefile --windowed --name "KING2MO_Standalone" --icon=app.ico --add-data "frontend/out;frontend_out" --collect-all scipy --hidden-import scipy.special._cdflib backend\main.py
 
 echo.
 echo =======================================
