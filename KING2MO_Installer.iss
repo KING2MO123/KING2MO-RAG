@@ -19,6 +19,7 @@ DefaultGroupName=KING2MO
 PrivilegesRequired=lowest
 OutputDir=installer
 OutputBaseFilename=KING2MO_Setup
+SetupIconFile=app.ico
 Compression=lzma2
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64compatible
