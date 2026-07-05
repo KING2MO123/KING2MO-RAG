@@ -21,7 +21,13 @@ build/
 installer/
 Output/
 *.spec
+!KING2MO_Standalone.spec
 crash.log
+
+# Runtime (données locales de l'application)
+conversations/
+king2mo.port
+king2mo_error.log
 
 # Frontend build artifacts
 frontend/out/
@@ -30,3 +36,5 @@ frontend/node_modules/
 
 # Archives (private internal notes)
 _archives/
+HANDOFF_CONTEXTE.md
+SPECS_*.md
