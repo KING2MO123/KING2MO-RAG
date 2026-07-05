@@ -4,8 +4,7 @@ Ce projet implémente **KING2MO**, une application desktop Windows (pywebview + 
 
 ---
 
-> [!TIP]
-> *Insère ici une capture d'écran de l'interface principale (ex: `![Interface Principale](docs/screenshot1.png)`)*
+![Interface Principale](docs/screenshot1.png)
 
 ## ✨ Fonctionnalités Clés
 
