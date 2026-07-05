@@ -37,6 +37,9 @@ Ce projet implémente **KING2MO**, une application desktop Windows (pywebview + 
 **5. Test En Ligne avec CV Uploadé**  
 ![Test Ligne CV](docs/Test%20en%20Ligne%20avec%20Cv%20uploade%20.png)
 
+**6. Interface Claire (Mode Light)**  
+![Mode Light](docs/Mode%20light%20.png)
+
 </details>
 
 ---
