@@ -4,7 +4,7 @@ Ce projet implémente **KING2MO**, une application desktop Windows (pywebview + 
 
 ---
 
-![Interface Principale](docs/screenshot1.png)
+![Interface Principale](docs/Interface%20principale%20.png)
 
 ## ✨ Fonctionnalités Clés
 
@@ -13,6 +13,31 @@ Ce projet implémente **KING2MO**, une application desktop Windows (pywebview + 
 * 🎨 **Design Premium :** Interface moderne, Dark Mode natif, glassmorphism, et streaming de texte ultra-fluide.
 * 💰 **Contrôle des coûts :** Suivi en temps réel du coût de chaque requête via un compteur intégré.
 * 📦 **Standalone :** Compilable en un seul fichier exécutable `.exe` pour Windows, sans installation complexe.
+
+---
+
+## 📸 Galerie
+
+<details>
+<summary><b>Voir plus de captures d'écran (Paramètres, RAG Hybride, Web...)</b></summary>
+<br>
+
+**1. Paramètres & API**  
+![Paramètres](docs/Parametres.png)
+
+**2. Test Local (RAG sur documents)**  
+![Test Local](docs/Test%20en%20Local.png)
+
+**3. Test Recherche Web**  
+![Test Web](docs/Teste%20Web.png)
+
+**4. Test Hybride avec CV Uploadé**  
+![Test Hybride CV](docs/Teste%20en%20Hybride%20avec%20Cv%20uploade%20.png)
+
+**5. Test En Ligne avec CV Uploadé**  
+![Test Ligne CV](docs/Test%20en%20Ligne%20avec%20Cv%20uploade%20.png)
+
+</details>
 
 ---
 
