@@ -27,3 +27,6 @@ crash.log
 frontend/out/
 frontend/.next/
 frontend/node_modules/
+
+# Archives (private internal notes)
+_archives/
