@@ -12,7 +12,7 @@ Ce projet implémente **KING2MO**, une application desktop Windows (pywebview + 
 * 🧠 **Agentic RAG Intelligent :** Route dynamiquement entre tes documents locaux et la recherche web (Tavily) selon le contexte de la question.
 * 🎨 **Design Premium :** Interface moderne, Dark Mode natif, glassmorphism, et streaming de texte ultra-fluide.
 * 💰 **Contrôle des coûts :** Suivi en temps réel du coût de chaque requête via un compteur intégré.
-* 📦 **Standalone :** Compilable en un seul fichier exécutable `.exe` pour Windows, sans installation complexe.
+* 📦 **Standalone :** Compilable en un seul fichier exécutable `.exe` pour Windows, sans installation complexe. (Utilisez `scripts/rebuild_standalone.bat` pour générer l'exécutable).
 
 ---
 

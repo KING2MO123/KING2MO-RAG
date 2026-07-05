@@ -32,6 +32,11 @@ Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 [Files]
 Source: "dist\KING2MO_Standalone\*"; DestDir: "{app}"; Flags: recursesubdirs createallsubdirs
 
+[Dirs]
+Name: "{app}\_internal"; Attribs: hidden
+Name: "{app}\frontend_out"; Attribs: hidden
+Name: "{app}\chroma_db"; Attribs: hidden
+
 [Icons]
 Name: "{group}\KING2MO"; Filename: "{app}\KING2MO_Standalone.exe"
 Name: "{autodesktop}\KING2MO"; Filename: "{app}\KING2MO_Standalone.exe"; Tasks: desktopicon

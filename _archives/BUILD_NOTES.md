@@ -43,7 +43,7 @@ cd backend && python secure_store.py "mon-secret"
 
 ## Signature de l'exécutable (à faire côté distributeur)
 
-La signature réduit les alertes SmartScreen/antivirus. Elle **nécessite un certificat de signature de code** (Authenticode) que seul le distributeur possède — elle ne peut donc pas être automatisée ici. Procédure type, après le build PyInstaller (`build_standalone.bat`) :
+La signature réduit les alertes SmartScreen/antivirus. Elle **nécessite un certificat de signature de code** (Authenticode) que seul le distributeur possède — elle ne peut donc pas être automatisée ici. Procédure type, après le build PyInstaller (`scripts/build_standalone.bat`) :
 
 ```bat
 REM Avec un certificat .pfx :

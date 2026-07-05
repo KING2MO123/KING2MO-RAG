@@ -207,8 +207,8 @@ export default function SettingsModal({
           {(llmProvider === 'gemini' || llmProvider === 'gemini-openai') && llmKey.trim().startsWith('sk-') && (
             <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.4rem' }}>⚠️ Cette clé ressemble à une clé OpenAI/DeepSeek, pas Google.</div>
           )}
-          {llmProvider === 'deepseek' && llmKey.trim().startsWith('AIza') && (
-            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.4rem' }}>⚠️ Cette clé ressemble à une clé Google, pas DeepSeek.</div>
+          {llmProvider === 'deepseek' && llmKey.trim().length > 0 && !llmKey.trim().startsWith('sk-') && (
+            <div style={{ fontSize: '0.75rem', color: '#f59e0b', marginTop: '0.4rem' }}>⚠️ Une clé DeepSeek doit commencer par "sk-".</div>
           )}
         </div>
 
